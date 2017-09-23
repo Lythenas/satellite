@@ -1,0 +1,10 @@
+[global.meta]
+title = "Test Blog"
+description = "This is a test blog for Satellite"
+author = "Matthias Seiffert <lythenas@hotmail.de>"
+
+[staging]
+secret_key = "<your secret key here>"
+
+[production]
+secret_key = "<your secret key here>"
