@@ -3,12 +3,14 @@
 
 extern crate rocket;
 extern crate rocket_contrib;
-#[macro_use] extern crate serde_derive;
+
+extern crate context_builder;
 
 /// Contains all the routes for Satellite.
 mod routes;
 
 use rocket_contrib::Template;
+use rocket::fairing::AdHoc;
 
 /// Creates a new Rocket instance ready to launch the cms.
 ///
@@ -30,4 +32,8 @@ pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes::routes())
         .attach(Template::fairing())
+        .attach(AdHoc::on_attach(|rocket| {
+            let config = rocket.config().clone();
+            Ok(rocket.manage(config))
+        }))
 }

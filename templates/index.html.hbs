@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="{{meta_description}}">
-    <meta name="author" content="{{meta_author}}">
+    <meta name="description" content="{{meta.description}}">
+    <meta name="author" content="{{meta.author}}">
     <link rel="icon" href="/favicon.ico">
 
-    <title>{{meta_title}}</title>
+    <title>{{meta.title}}</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
@@ -34,8 +34,8 @@
 
     <div class="blog-header">
         <div class="container">
-            <h1 class="blog-title">{{meta_title}}</h1>
-            <p class="lead blog-description">{{meta_description}}</p>
+            <h1 class="blog-title">{{meta.title}}</h1>
+            <p class="lead blog-description">{{meta.description}}</p>
         </div>
     </div>
 </header>
@@ -115,7 +115,7 @@
         <aside class="col-sm-3 ml-sm-auto blog-sidebar">
             <div class="sidebar-module sidebar-module-inset">
                 <h4>About</h4>
-                <p>{{extra_about}}</p>
+                <p>{{extra.about}}</p>
             </div>
             <div class="sidebar-module">
                 <h4>Archives</h4>

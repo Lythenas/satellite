@@ -11,6 +11,8 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
+context_builder = { path = "../context_builder" }
+
 [dependencies.rocket_contrib]
 version = "*"
 default-features = false
