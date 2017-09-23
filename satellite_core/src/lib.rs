@@ -28,6 +28,6 @@ use rocket_contrib::Template;
 /// ```
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
-        .mount("/", routes.routes())
+        .mount("/", routes::routes())
         .attach(Template::fairing())
 }
