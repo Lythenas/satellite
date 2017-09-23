@@ -1,0 +1,18 @@
+[package]
+name = "satellite_core"
+version = "0.1.0"
+authors = ["Matthias Seiffert <lythenas@hotmail.de>"]
+description = "The core library for the satellite cms."
+
+[dependencies]
+rocket = "0.3.2"
+rocket_codegen = "0.3.2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["handlebars_templates"]
+

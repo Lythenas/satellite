@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "satellite_core/",
+]
+
+[package]
+name = "satellite"
+version = "0.1.0"
+authors = ["Matthias Seiffert <lythenas@hotmail.de>"]
+
+[dependencies]
+satellite_core = { path = "satellite_core/" }
