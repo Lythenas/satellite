@@ -3,8 +3,11 @@ title = "Test Blog"
 description = "This is a test blog for Satellite"
 author = "Matthias Seiffert <lythenas@hotmail.de>"
 
+# You should add static secret keys for staging and production
+# Generate them with `openssl rand -base64 32`
+
 [staging]
-secret_key = "<your secret key here>"
+# secret_key = ""
 
 [production]
-secret_key = "<your secret key here>"
+# secret_key = ""
