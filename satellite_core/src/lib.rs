@@ -5,12 +5,10 @@ extern crate rocket;
 extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
 
-use rocket_contrib::Template;
+/// Contains all the routes for Satellite.
+mod routes;
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, World!"
-}
+use rocket_contrib::Template;
 
 /// Creates a new Rocket instance ready to launch the cms.
 ///
@@ -30,6 +28,6 @@ fn index() -> &'static str {
 /// ```
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
-        .mount("/", routes![index])
+        .mount("/", routes.routes())
         .attach(Template::fairing())
 }
