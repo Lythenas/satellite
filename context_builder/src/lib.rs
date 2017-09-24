@@ -8,26 +8,35 @@ use std::collections::BTreeMap;
 use rocket::Config;
 use rocket::config::Value;
 
-/// Builds a [TemplateContext] to be passed to [rocket_contrib::Template::render].
+// TODO make the ContextBuilder work with more than just Strings
+//      (anything that implements Serialize should work).
+// TODO add methods for adding meta, extra and data.
+// TODO add navigation, maybe in extra crate NavigationBuilder?
+
+/// Builds a [`TemplateContext`] to be passed to [`rocket_contrib::Template::render`].
 ///
 /// # Examples
 ///
-/// Create a [TemplateContext] with only the meta data in Rocket.toml.
-/// You need to attach a copy of [rocket::Config] as managed state for this to work.
+/// Create a [`TemplateContext`] with only the meta data in Rocket.toml.
+/// You need to attach a copy of [`rocket::Config`] as managed state for this to work.
 ///
-/// ```rust,ignore
+/// ```rust
+/// #![feature(plugin)]
+/// #![plugin(rocket_codegen)]
 /// extern crate rocket;
-/// #[macro_use] extern crate rocket_codegen;
 /// extern crate rocket_contrib;
+/// extern crate context_builder;
 ///
 /// use rocket::{State, Config};
 /// use rocket::fairing::AdHoc;
 /// use rocket_contrib::Template;
 ///
+/// use context_builder::ContextBuilder;
+///
 /// #[get("/")]
 /// fn index(config: State<Config>) -> Template {
-///     let context = ContextBuilder::from(*config).finalize();
-///     Template::render("index", &context);
+///     let context = ContextBuilder::from(config.inner()).finalize();
+///     Template::render("index", &context)
 /// }
 ///
 /// fn main() {
@@ -38,9 +47,14 @@ use rocket::config::Value;
 ///             let config = rocket.config().clone();
 ///             Ok(rocket.manage(config))
 ///         }))
-///         .launch();
+///         // .launch();
+///         ;
 /// }
 /// ```
+///
+/// [`TemplateContext`]: struct.TemplateContext.html
+/// [`rocket_contrib::Template::render`]: https://api.rocket.rs/rocket_contrib/struct.Template.html#method.render
+/// [`rocket::Config`]: https://api.rocket.rs/rocket/struct.Config.html
 #[derive(Debug)]
 pub struct ContextBuilder {
     meta: BTreeMap<String, String>,
@@ -49,7 +63,8 @@ pub struct ContextBuilder {
 }
 
 impl<'a> From<&'a Config> for ContextBuilder {
-    /// Creates a ContextBuilder with meta data and extras from the given `rocket::Config`.
+    /// Creates a ContextBuilder with meta data and extras from the given [`rocket::Config`].
+    /// [`rocket::Config`]: https://api.rocket.rs/rocket/struct.Config.html
     fn from(config: &Config) -> Self {
         let meta = match config.get_table("meta") {
             Ok(map) => map.iter().map(&value_to_string_or_default).collect(),
@@ -68,7 +83,9 @@ impl<'a> From<&'a Config> for ContextBuilder {
 }
 
 impl ContextBuilder {
-    /// Finalizes the TemplateContext consuming the ContextBuilder.
+    /// Finalizes the [`TemplateContext`] consuming the `ContextBuilder`.
+    ///
+    /// [`TemplateContext`]: struct.TemplateContext.html
     pub fn finalize(self) -> TemplateContext {
         TemplateContext {
             meta: self.meta,
@@ -78,9 +95,12 @@ impl ContextBuilder {
     }
 }
 
-/// Convenient Context to pass to [rocket_contrib::Template::render].
+/// Convenient Context to pass to [`rocket_contrib::Template::render`].
 ///
-/// Use [ContextBuilder] to build one.
+/// Use [`ContextBuilder`] to build one.
+///
+/// [`ContextBuilder`]: struct.ContextBuilder.html
+/// [`rocket_contrib::Template::render`]: https://api.rocket.rs/rocket_contrib/struct.Template.html#method.render
 #[derive(Debug, Serialize)]
 pub struct TemplateContext {
     meta: BTreeMap<String, String>,
