@@ -12,7 +12,7 @@ mod routes;
 use rocket_contrib::Template;
 use rocket::fairing::AdHoc;
 
-/// Creates a new Rocket instance ready to launch the cms.
+/// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///
 /// You can add more routes, fairings and managed state afert calling
 /// this function.
@@ -28,6 +28,8 @@ use rocket::fairing::AdHoc;
 ///     rocket().launch();
 /// }
 /// ```
+///
+/// [`rocket::Rocket`]: https://api.rocket.rs/rocket/struct.Rocket.html
 pub fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes::routes())

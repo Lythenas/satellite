@@ -8,7 +8,7 @@ use rocket::Config;
 
 use context_builder::ContextBuilder;
 
-/// Returns all routes.
+/// Returns a [`Vec`]`<`[`Route`]`>` of all routes in satellite.
 ///
 /// # Usage
 ///
@@ -19,6 +19,9 @@ use context_builder::ContextBuilder;
 ///         .launch();
 /// }
 /// ```
+///
+/// [`Vec`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
+/// [`Route`]: https://api.rocket.rs/rocket/struct.Route.html
 pub fn routes() -> Vec<Route> {
     routes![index, static_files]
 }
