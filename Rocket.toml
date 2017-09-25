@@ -1,7 +1,10 @@
 [global.meta]
 title = "Test Blog"
 description = "This is a test blog for Satellite"
-author = "Matthias Seiffert <lythenas@hotmail.de>"
+authors = [
+    "Matthias Seiffert <lythenas@hotmail.de>",
+    "Another <another@author.tld>"
+]
 
 # You should add static secret keys for staging and production
 # Generate them with `openssl rand -base64 32`
