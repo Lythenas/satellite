@@ -1,3 +1,6 @@
+#![feature(test)]
+#[cfg(test)]
+extern crate test;
 
 extern crate regex;
 //extern crate serde;
@@ -16,6 +19,6 @@ pub struct NavigationBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //use super::*;
 
 }

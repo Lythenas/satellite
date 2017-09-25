@@ -3,11 +3,6 @@ use std::collections::BTreeMap;
 use rocket::Config;
 use rocket::config::Value;
 
-pub mod errors {
-    #[derive(Debug, PartialEq)]
-    pub struct AuthorParseError(pub String);
-}
-
 /// This struct is used to hold meta data for contexts to be passed to [`Template::render`]
 ///
 /// # Examples
@@ -92,6 +87,7 @@ impl Author {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn convert_string_to_author() {
@@ -104,6 +100,17 @@ mod tests {
         assert!(Author::try_from(String::from("<>")).is_err());
         assert!(Author::try_from(String::from("<random@mail.tld>")).is_err());
         assert!(Author::try_from(String::from("Random Name")).is_err());
+    }
+
+    // TODO probably cache Metadata somewhere because it rarely changes
+
+    #[bench]
+    fn config_parsing_without_rocket_app(b: &mut Bencher) {
+        let config = Config::development().unwrap();
+
+        b.iter(|| {
+            Metadata::from(&config)
+        });
     }
 
 }
