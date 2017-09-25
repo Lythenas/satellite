@@ -20,7 +20,7 @@ fn index(config: State<Config>) -> Template {
     }
 
     let context = IndexContext {
-        meta: Metadata::from(config.inner()),
+        meta: Metadata::with_config(config.inner()),
         extra: HashMap::new(),
         data: vec![],
     };

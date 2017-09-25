@@ -26,13 +26,14 @@ pub struct Metadata {
     title: String,
     description: String,
     authors: Vec<Author>,
+    // TODO add more fields
 }
 
-impl<'a> From<&'a Config> for Metadata {
+impl Metadata {
     /// Checks if the loaded Rocket.toml (stored in [`Config`]) contains a meta table and clones title, description and
     /// authors into a new struct.
     /// [`Config`]: https://api.rocket.rs/rocket/struct.Config.html
-    fn from(config: &Config) -> Self {
+    pub fn with_config(config: &Config) -> Self {
         let meta = match config.get_table("meta") {
             Ok(map) => map.clone(),
             Err(_) => BTreeMap::new(),
@@ -109,7 +110,7 @@ mod tests {
         let config = Config::development().unwrap();
 
         b.iter(|| {
-            Metadata::from(&config)
+            Metadata::with_config(&config)
         });
     }
 
