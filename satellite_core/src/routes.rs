@@ -7,20 +7,20 @@ use rocket::Route;
 use rocket::State;
 use rocket::Config;
 
-use context_builder::MetaData;
+use context_builder::Metadata;
 
 #[get("/")]
 fn index(config: State<Config>) -> Template {
     // TODO refactor
     #[derive(Serialize)]
     struct IndexContext {
-        meta: MetaData,
+        meta: Metadata,
         extra: HashMap<String, String>,
         data: Vec<String>,
     }
 
     let context = IndexContext {
-        meta: MetaData::from(config.inner()),
+        meta: Metadata::from(config.inner()),
         extra: HashMap::new(),
         data: vec![],
     };
