@@ -8,14 +8,11 @@ extern crate regex;
 extern crate serde_derive;
 extern crate rocket;
 
-mod metadata;
+pub mod metadata;
+pub mod navigation;
 
 pub use metadata::Metadata;
-
-// TODO
-pub struct NavigationBuilder {
-
-}
+pub use navigation::NavigationMenu;
 
 #[cfg(test)]
 mod tests {
