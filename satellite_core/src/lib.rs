@@ -13,6 +13,7 @@ mod routes;
 
 use rocket_contrib::Template;
 use rocket::fairing::AdHoc;
+use rocket::Rocket;
 
 /// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///
@@ -32,12 +33,15 @@ use rocket::fairing::AdHoc;
 /// ```
 ///
 /// [`rocket::Rocket`]: https://api.rocket.rs/rocket/struct.Rocket.html
-pub fn rocket() -> rocket::Rocket {
-    rocket::ignite()
-        .mount("/", routes::routes())
+pub fn rocket() -> Rocket {
+    let rocket = rocket::ignite()
         .attach(Template::fairing())
         .attach(AdHoc::on_attach(|rocket| {
             let config = rocket.config().clone();
             Ok(rocket.manage(config))
-        }))
+        }));
+
+    let rocket = routes::mount_to(rocket);
+
+    rocket
 }
