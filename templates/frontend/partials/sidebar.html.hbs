@@ -1,0 +1,26 @@
+<aside class="col-sm-3 ml-sm-auto blog-sidebar">
+    <div class="sidebar-module sidebar-module-inset">
+        <h4>About</h4>
+        <p>
+            {{#each meta.authors}}
+                <a href="mailto:{{email}}">{{name}}</a><br>
+            {{/each}}
+        </p>
+    </div>
+    <div class="sidebar-module">
+        <h4>Archives</h4>
+        <ol class="list-unstyled">
+            {{#each extra.archive}}
+                <li>{{~> link this}}</li>
+            {{/each}}
+        </ol>
+    </div>
+    <div class="sidebar-module">
+        <h4>Elsewhere</h4>
+        <ol class="list-unstyled">
+            <li><a href="#">GitHub</a></li>
+            <li><a href="#">Twitter</a></li>
+            <li><a href="#">Facebook</a></li>
+        </ol>
+    </div>
+</aside><!-- /.blog-sidebar -->
