@@ -86,9 +86,9 @@ impl<'de> Deserialize<'de> for Author {
     }
 }
 
-struct AuthorParseError;
-
-
+/// Represents a parse error for Author.
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct AuthorParseError;
 
 #[cfg(test)]
 mod tests {
