@@ -10,7 +10,7 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 /// This struct is used to hold meta data for contexts to be passed to [`Template::render`]
 ///
 /// [`Template::render`]: https://api.rocket.rs/rocket_contrib/struct.Template.html#method.render
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Metadata {
     title: String,
     description: String,
@@ -93,7 +93,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn convert_string_to_author() {
+    fn deserialize_author() {
         assert_eq!(Ok(Author {
             name: "Random Name".to_string(),
             email: "random@mail.tld".to_string(),
@@ -103,6 +103,35 @@ mod tests {
         assert!("<>".parse::<Author>().is_err());
         assert!("<random@mail.tld>".parse::<Author>().is_err());
         assert!("Random Name".parse::<Author>().is_err());
+    }
+
+    #[test]
+    fn deserialize_metadata() {
+        let data = r#"
+            title = "Some Title"
+            description = "Some description"
+            authors = [
+                "Name <email@author.com>",
+                "Another <another@author.net>"
+            ]
+        "#;
+
+        let meta: Metadata = toml::from_str(data).unwrap();
+
+        assert_eq!(meta, Metadata {
+            title: "Some Title".to_string(),
+            description: "Some description".to_string(),
+            authors: vec![
+                Author {
+                    name: "Name".to_string(),
+                    email: "email@author.com".to_string(),
+                },
+                Author {
+                    name: "Another".to_string(),
+                    email: "another@author.net".to_string(),
+                }
+            ],
+        });
     }
 
 }
