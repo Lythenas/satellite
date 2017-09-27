@@ -12,6 +12,12 @@ pub fn routes() -> Vec<Route> {
     routes![index, static_files]
 }
 
+// TODO add a Template guard instead of State<SatelliteConfig>.
+// The guard should take care of setting everything up.
+// It loads e.g. the dynamically loaded parts of the sidebar (also TODO).
+// We then just pass it the template name and a inner context containing only individual data
+// e.g. list of posts for index.
+
 #[get("/")]
 fn index(meta: State<SatelliteConfig>) -> Template {
     // TODO refactor
@@ -27,6 +33,8 @@ fn index(meta: State<SatelliteConfig>) -> Template {
 
     Template::render("frontend/index", &context)
 }
+
+// TODO add more routes
 
 /// Serving static files in `static/` directory before 404ing.
 /// This is automatically protected from requesting files outside of the `static/` directory.

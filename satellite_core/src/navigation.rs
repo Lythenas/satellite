@@ -1,6 +1,8 @@
-
 use std::collections::HashMap;
 use std::string::ToString;
+
+// TODO rethink the whole navigation builder thing.
+// Is it necessary or can it be done simpler.
 
 /// This type is used to build a navigation menu.
 /// It can contain [`Link`]s and other sub `NavigationMenu`s.
@@ -67,9 +69,10 @@ pub enum NavigationItem {
 
 /// Stores information for a link.
 ///
-/// Used in [`NavigationItem`].
+/// Used in [`NavigationItem`] and [`SidebarItem::Links`].
 ///
 /// [`NavigationItem`]: enum.NavigationItem.html
+/// [`SidebarItem::Links`]: enum.SidebarItem.html#Links.v
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     text: String,
