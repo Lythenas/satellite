@@ -5,3 +5,28 @@ authors = [
     "Another <another@author.tld>"
 ]
 
+[sidebar."About"]
+type = "text_inset"
+content = """
+Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. I love chupa chups chocolate cake lollipop I love cheesecake.
+Tiramisu chupa chups croissant jelly-o caramels. Marzipan ice cream oat cake sesame snaps marzipan. Halvah dessert I love macaroon apple pie I love dragée.
+"""
+
+[sidebar."Archive"]
+type = "links"
+content = [
+    { text = "March 2013", url = "#03-2013" },
+    { text = "April 2013", url = "#04-2013" },
+    { text = "June 2013", url = "#05-2013" },
+    { text = "July 2013", url = "#06-2013" },
+    { text = "August 2013", url = "#07-2013" },
+    { text = "October 2013", url = "#08-2013" },
+]
+
+[sidebar."Elsewhere"]
+type = "links"
+content = [
+    { text = "Github", url = "https://github.com/lythenas" },
+    { text = "Twitter", url = "https://twitter.com/lythenas" },
+]
+

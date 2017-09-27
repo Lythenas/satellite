@@ -70,10 +70,11 @@ pub enum NavigationItem {
 /// Used in [`NavigationItem`].
 ///
 /// [`NavigationItem`]: enum.NavigationItem.html
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     text: String,
     url: String,
+    #[serde(default)]
     attributes: HashMap<String, String>,
 }
 

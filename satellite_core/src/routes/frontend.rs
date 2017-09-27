@@ -18,26 +18,10 @@ fn index(meta: State<SatelliteConfig>) -> Template {
     #[derive(Serialize)]
     struct IndexContext<'a> {
         meta: &'a SatelliteConfig,
-        extra: Extra,
         data: Vec<String>,
     }
-
-    #[derive(Serialize)]
-    struct Extra {
-        archive: Vec<Link>,
-    }
-
-    let archive = vec![
-        Link::new("March 2013", "#03-2013"),
-        Link::new("April 2013", "#04-2013"),
-        Link::new("June 2013", "#05-2013"),
-        Link::new("July 2013", "#06-2013"),
-    ];
-    let extra = Extra { archive };
-
     let context = IndexContext {
         meta: meta.inner(),
-        extra,
         data: vec![],
     };
 

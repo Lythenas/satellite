@@ -2,10 +2,13 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::str::FromStr;
 use std::fmt;
+use std::collections::HashMap;
 
 use rocket::fairing::AdHoc;
 use toml;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
+
+use navigation::Link;
 
 /// This struct is used to hold meta data for contexts to be passed to [`Template::render`]
 ///
@@ -15,6 +18,7 @@ pub struct SatelliteConfig {
     title: String,
     description: String,
     authors: Vec<Author>,
+    sidebar: Sidebar,
     // TODO add more fields
 }
 
@@ -87,8 +91,20 @@ impl<'de> Deserialize<'de> for Author {
 }
 
 /// Represents a parse error for Author.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuthorParseError;
+
+/// Wrapper around `HashMap<String, SidebarItem>` for storing the sidebar.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Sidebar(HashMap<String, SidebarItem>);
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "content", rename_all = "snake_case")]
+pub enum SidebarItem {
+    Text(String),
+    TextInset(String),
+    Links(Vec<Link>),
+}
 
 #[cfg(test)]
 mod tests {
@@ -133,6 +149,7 @@ mod tests {
                     email: "another@author.net".to_string(),
                 }
             ],
+            sidebar: SideBar(HashMap::new()),
         });
     }
 
