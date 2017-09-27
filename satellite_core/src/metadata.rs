@@ -11,14 +11,14 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 ///
 /// [`Template::render`]: https://api.rocket.rs/rocket_contrib/struct.Template.html#method.render
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct Metadata {
+pub struct SatelliteConfig {
     title: String,
     description: String,
     authors: Vec<Author>,
     // TODO add more fields
 }
 
-impl Metadata {
+impl SatelliteConfig {
     pub fn fairing() -> AdHoc {
         AdHoc::on_attach(|rocket| {
             let mut input = String::new();
@@ -26,7 +26,7 @@ impl Metadata {
                 f.read_to_string(&mut input)
             }).unwrap();
 
-            let metadata: Result<Metadata, _> = toml::from_str(input.as_str());
+            let metadata: Result<SatelliteConfig, _> = toml::from_str(input.as_str());
 
             match metadata {
                 Ok(metadata) => Ok(rocket.manage(metadata)),
@@ -118,9 +118,9 @@ mod tests {
             ]
         "#;
 
-        let meta: Metadata = toml::from_str(data).unwrap();
+        let meta: SatelliteConfig = toml::from_str(data).unwrap();
 
-        assert_eq!(meta, Metadata {
+        assert_eq!(meta, SatelliteConfig {
             title: "Some Title".to_string(),
             description: "Some description".to_string(),
             authors: vec![

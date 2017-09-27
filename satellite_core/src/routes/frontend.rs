@@ -5,7 +5,7 @@ use rocket_contrib::Template;
 use rocket::response::NamedFile;
 use rocket::{Route, State};
 
-use metadata::Metadata;
+use metadata::SatelliteConfig;
 use navigation::Link;
 
 pub fn routes() -> Vec<Route> {
@@ -13,11 +13,11 @@ pub fn routes() -> Vec<Route> {
 }
 
 #[get("/")]
-fn index(meta: State<Metadata>) -> Template {
+fn index(meta: State<SatelliteConfig>) -> Template {
     // TODO refactor
     #[derive(Serialize)]
     struct IndexContext<'a> {
-        meta: &'a Metadata,
+        meta: &'a SatelliteConfig,
         extra: Extra,
         data: Vec<String>,
     }

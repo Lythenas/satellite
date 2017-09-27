@@ -23,7 +23,7 @@ mod navigation;
 use rocket_contrib::Template;
 use rocket::Rocket;
 
-use metadata::Metadata;
+use metadata::SatelliteConfig;
 
 /// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///
@@ -38,7 +38,7 @@ use metadata::Metadata;
 pub fn rocket() -> Rocket {
     let rocket = rocket::ignite()
         .attach(Template::fairing())
-        .attach(Metadata::fairing());
+        .attach(SatelliteConfig::fairing());
 
     let rocket = routes::mount_to(rocket);
 
