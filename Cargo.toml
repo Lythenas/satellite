@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "satellite_core/",
-    "context_builder/",
 ]
 
 [package]

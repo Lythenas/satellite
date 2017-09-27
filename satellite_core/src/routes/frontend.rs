@@ -1,23 +1,23 @@
 use std::path::{Path, PathBuf};
-use std::collections::HashMap;
+//use std::collections::HashMap;
 
 use rocket_contrib::Template;
 use rocket::response::NamedFile;
-use rocket::{State, Config, Route};
+use rocket::{Route, State};
 
-use context_builder::Metadata;
-use context_builder::navigation::Link;
+use metadata::Metadata;
+use navigation::Link;
 
 pub fn routes() -> Vec<Route> {
     routes![index, static_files]
 }
 
 #[get("/")]
-fn index(config: State<Config>) -> Template {
+fn index(meta: State<Metadata>) -> Template {
     // TODO refactor
     #[derive(Serialize)]
-    struct IndexContext {
-        meta: Metadata,
+    struct IndexContext<'a> {
+        meta: &'a Metadata,
         extra: Extra,
         data: Vec<String>,
     }
@@ -36,7 +36,7 @@ fn index(config: State<Config>) -> Template {
     let extra = Extra { archive };
 
     let context = IndexContext {
-        meta: Metadata::with_config(config.inner()),
+        meta: meta.inner(),
         extra,
         data: vec![],
     };

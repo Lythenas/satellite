@@ -3,17 +3,27 @@
 
 extern crate rocket;
 extern crate rocket_contrib;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-
-extern crate context_builder;
+extern crate regex;
+extern crate toml;
 
 /// Contains all the routes for Satellite.
 mod routes;
 
+/// Contains Metadata structs for use in routes.
+mod metadata;
+
+/// Contains [`NavigationBuilder´] and other navigation related structs and methods.
+///
+/// [`NaviagationBuilder`]: struct.NavigationBuilder.html
+mod navigation;
+
 use rocket_contrib::Template;
-use rocket::fairing::AdHoc;
 use rocket::Rocket;
+
+use metadata::Metadata;
 
 /// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///
@@ -22,24 +32,13 @@ use rocket::Rocket;
 ///
 /// # Examples
 ///
-/// Launch the instance without additional configuration.
-///
-/// ```rust,ignore
-/// use satellite_core::rocket;
-///
-/// fn main() {
-///     rocket().launch();
-/// }
-/// ```
+/// See https://github.com/Lythenas/satellite/blob/master/src/main.rs
 ///
 /// [`rocket::Rocket`]: https://api.rocket.rs/rocket/struct.Rocket.html
 pub fn rocket() -> Rocket {
     let rocket = rocket::ignite()
         .attach(Template::fairing())
-        .attach(AdHoc::on_attach(|rocket| {
-            let config = rocket.config().clone();
-            Ok(rocket.manage(config))
-        }));
+        .attach(Metadata::fairing());
 
     let rocket = routes::mount_to(rocket);
 

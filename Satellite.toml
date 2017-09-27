@@ -1,0 +1,7 @@
+title = "Test Blog"
+description = "This is a test blog for Satellite"
+authors = [
+    "Matthias Seiffert <lythenas@hotmail.de>",
+    "Another <another@author.tld>"
+]
+
