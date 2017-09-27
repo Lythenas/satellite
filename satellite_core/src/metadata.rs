@@ -48,13 +48,13 @@ pub struct Author {
 }
 
 impl FromStr for Author {
-    type Err = ();
+    type Err = AuthorParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use regex::Regex;
         let re = Regex::new(r"(.*) <([a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*)>").unwrap();
 
-        let cap = re.captures_iter(s).next().ok_or(())?;
+        let cap = re.captures_iter(s).next().ok_or(AuthorParseError)?;
         let name = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
         let email = cap.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
 
@@ -85,6 +85,8 @@ impl<'de> Deserialize<'de> for Author {
         deserializer.deserialize_str(AuthorStringVisitor)
     }
 }
+
+struct AuthorParseError;
 
 
 
