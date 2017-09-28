@@ -39,16 +39,11 @@ fn index(meta: State<SatelliteConfig>) -> Template {
     let mut menus = HashMap::new();
     menus.insert("main".to_string(), builder.finalize());
 
-    // active
-    // nav-link
-
     let context = IndexContext {
         meta,
         menus,
         data: vec![],
     };
-
-    println!("{}", serde_json::to_string_pretty(&context).unwrap());
 
     Template::render("frontend/index", &context)
 }

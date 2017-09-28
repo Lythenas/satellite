@@ -42,6 +42,7 @@ pub fn rocket() -> Rocket {
         .attach(SatelliteConfig::fairing());
 
     let rocket = routes::mount_to(rocket);
+    let rocket = routes::add_catchers_to(rocket);
 
     rocket
 }
