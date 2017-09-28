@@ -15,7 +15,7 @@
         <h4>{{title}}</h4>
         <ol class="list-unstyled">
             {{#each item.content}}
-                <li>{{~> link this}}</li>
+                <li>{{~> link this ~}}</li>
             {{/each}}
         </ol>
     </div>
@@ -23,6 +23,6 @@
 
 <aside class="col-sm-3 ml-sm-auto blog-sidebar">
     {{#each meta.sidebar as |title item|}}
-        {{~> (item.type) title=title item=item}}
+        {{~> (item.type) title=title item=item ~}}
     {{/each}}
 </aside><!-- /.blog-sidebar -->

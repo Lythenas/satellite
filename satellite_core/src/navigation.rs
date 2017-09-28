@@ -1,79 +1,11 @@
 use std::collections::HashMap;
 use std::string::ToString;
 
-// TODO rethink the whole navigation builder thing.
-// Is it necessary or can it be done simpler.
-
-/// This type is used to build a navigation menu.
-/// It can contain [`Link`]s and other sub `NavigationMenu`s.
-#[derive(Debug, Serialize, Clone, PartialEq)]
-pub struct NavigationMenu {
-    items: Vec<NavigationItem>,
-}
-
-impl NavigationMenu {
-    /// Creates an empty `NavigationMenu`.
-    pub fn new() -> NavigationMenu {
-        NavigationMenu {
-            items: Vec::new(),
-        }
-    }
-
-    /// Adds a [`NavigationItem`] to the end of the menu.
-    /// Prefer using [`push_link`], [`push_link_to`] for adding links
-    /// and [`push_submenu`] for adding submenus.
-    ///
-    /// [`NavigationItem`]: enum.NavigationItem.html
-    /// [`push_link`]: #method.push_link
-    /// [`push_link_to`]: #method.push_link_to
-    /// [`push_submenu`]: #method.push_submenu
-    pub fn push_item(&mut self, item: NavigationItem) -> &mut Self {
-        self.items.push(item);
-        self
-    }
-
-    /// Adds a [`Link`] to the end of the menu.
-    ///
-    /// [`Link`]: struct.Link.html
-    pub fn push_link(&mut self, link: Link) -> &mut Self {
-        self.items.push(NavigationItem::Link(link));
-        self
-    }
-
-    /// Adds a [`Link`] to the given `url` with the given `text` to the end of the menu.
-    ///
-    /// [`Link`]: struct.Link.html
-    pub fn push_link_to<T: ToString, U: ToString>(&mut self, text: T, url: U) -> &mut Self {
-        self.items.push(NavigationItem::Link(Link::new(text, url)));
-        self
-    }
-
-    /// Adds another [`NavigationMenu`] to the end of this menu.
-    ///
-    /// [`NavigationMenu`]: struct.NavigationMenu.html
-    pub fn push_submenu(&mut self, submenu: NavigationMenu) -> &mut Self {
-        self.items.push(NavigationItem::SubMenu(submenu));
-        self
-    }
-}
-
-/// Stores information for a item in a [`NavigationMenu`].
-/// A item is either a link or a submenu.
-///
-/// [`NavigationMenu`]: struct.NavigationMenu.html
-#[derive(Debug, Serialize, Clone, PartialEq)]
-pub enum NavigationItem {
-    Link(Link),
-    SubMenu(NavigationMenu),
-}
-
 /// Stores information for a link.
-///
-/// Used in [`NavigationItem`] and [`SidebarItem::Links`].
 ///
 /// [`NavigationItem`]: enum.NavigationItem.html
 /// [`SidebarItem::Links`]: enum.SidebarItem.html#Links.v
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     text: String,
     url: String,
@@ -89,23 +21,170 @@ impl Link {
             attributes: HashMap::new(),
         }
     }
+
+    pub fn with_attributes<T, U>(text: T, url: U, attributes: HashMap<String, String>) -> Link
+        where T: ToString, U: ToString
+    {
+        Link {
+            text: text.to_string(),
+            url: url.to_string(),
+            attributes,
+        }
+    }
+
+    /// Adds a class to the class attribute string.
+    /// Does not check for duplicate classes.
+    pub fn add_class(&mut self, class: &str) {
+        let classes = self.attributes.entry("class".to_string()).or_insert("".to_string());
+        if !classes.is_empty() {
+            classes.push_str(" ");
+        }
+        classes.push_str(class);
+    }
+
+    /// Checks if the link has the given url.
+    pub fn url(&self) -> &str {
+        self.url.as_str()
+    }
+
+    pub fn extend_attributes(&mut self, new_attributes: HashMap<String, String>) {
+        for (attr, val) in new_attributes {
+            let current = self.attributes.entry(attr).or_insert("".to_string());
+            if !current.is_empty() {
+                current.push_str(" ");
+            }
+            current.push_str(val.as_str());
+        }
+    }
+}
+
+pub struct MenuBuilder<'b> {
+    menu: Vec<Link>,
+    active: Option<&'b str>,
+    attributes: HashMap<String, String>,
+}
+
+impl<'b> MenuBuilder<'b> {
+
+    pub fn new(menu: &[Link]) -> MenuBuilder {
+        MenuBuilder {
+            menu: menu.to_owned(),
+            active: None,
+            attributes: HashMap::new(),
+        }
+    }
+
+    pub fn add_class(&mut self, class: &str) {
+        // TODO don't store classes as string. store them as a set and join it later.
+        // this removes duplicates and avoids unnecessary whitespace at beginning without checks.
+        let class_attr = self.attributes.entry("class".to_string()).or_insert("".to_string());
+        if !class_attr.is_empty() {
+            class_attr.push_str(" ");
+        }
+        class_attr.push_str(class);
+    }
+
+    pub fn set_active(&mut self, url: &'b str) {
+        self.active = Some(url);
+    }
+
+    pub fn finalize(self) -> Vec<Link> {
+        self.menu.iter().map(|link| {
+            let mut link = link.clone();
+            link.extend_attributes(self.attributes.clone());
+            add_class_if_active(&mut link, self.active);
+            link
+        }).collect()
+    }
+
+}
+
+fn add_class_if_active(link: &mut Link, active: Option<&str>) {
+    if let Some(active_url) = active {
+        if link.url() == active_url {
+            link.add_class("active");
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn build_basic_navigation_menu() {
-        let mut menu = NavigationMenu::new();
-        menu.push_link_to("Home", "/")
-            .push_link_to("About", "/about")
-            .push_link_to("Blog", "/blog");
+    fn link() -> Link {
+        Link::new("Click here", "https://somewhere.net")
+    }
 
-        assert_eq!(menu, NavigationMenu { items: vec![
-            NavigationItem::Link(Link::new("Home", "/")),
-            NavigationItem::Link(Link::new("About", "/about")),
-            NavigationItem::Link(Link::new("Blog", "/blog")),
-        ] });
+    #[test]
+    fn create_link() {
+        let link = link();
+        assert_eq!(link, Link {
+            text: String::from("Click here"),
+            url: String::from("https://somewhere.net"),
+            attributes: HashMap::new(),
+        });
+    }
+
+    #[test]
+    fn extend_link_attributes() {
+        let mut link = link();
+        let mut attributes = HashMap::new();
+        attributes.insert(String::from("class"), String::from("active"));
+        attributes.insert(String::from("id"), String::from("some-id"));
+        link.extend_attributes(attributes);
+
+        assert_eq!(link.attributes, {
+            let mut m = HashMap::new();
+            m.insert(String::from("class"), String::from("active"));
+            m.insert(String::from("id"), String::from("some-id"));
+            m
+        });
+    }
+
+    #[test]
+    fn add_class_to_link() {
+        let mut link = link();
+        link.add_class("active");
+
+        assert_eq!(link.attributes, {
+            let mut m = HashMap::new();
+            m.insert(String::from("class"), String::from("active"));
+            m
+        });
+    }
+
+    #[test]
+    fn build_menu() {
+        let links = vec![
+            Link::new("Home", "/"),
+            Link::new("About", "/about"),
+            Link::new("Blog", "/blog"),
+            Link::new("Somewhere else", "/se"),
+        ];
+        let mut builder = MenuBuilder::new(links.as_ref());
+        builder.add_class("main-nav");
+        builder.set_active("/blog");
+        let menu = builder.finalize();
+
+        assert_eq!(menu[0], {
+                let mut attrs = HashMap::new();
+                attrs.insert(String::from("class"), String::from("main-nav"));
+                Link::with_attributes("Home", "/", attrs)
+        });
+        assert_eq!(menu[1], {
+            let mut attrs = HashMap::new();
+            attrs.insert(String::from("class"), String::from("main-nav"));
+            Link::with_attributes("About", "/about", attrs)
+        });
+        assert_eq!(menu[2], {
+            let mut attrs = HashMap::new();
+            attrs.insert(String::from("class"), String::from("main-nav active"));
+            Link::with_attributes("Blog", "/blog", attrs)
+        });
+        assert_eq!(menu[3], {
+            let mut attrs = HashMap::new();
+            attrs.insert(String::from("class"), String::from("main-nav"));
+            Link::with_attributes("Somewhere else", "/se", attrs)
+        });
     }
 }

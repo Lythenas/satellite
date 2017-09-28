@@ -1,12 +1,14 @@
 use std::path::{Path, PathBuf};
-//use std::collections::HashMap;
+use std::collections::HashMap;
 
 use rocket_contrib::Template;
 use rocket::response::NamedFile;
 use rocket::{Route, State};
 
 use metadata::SatelliteConfig;
-use navigation::Link;
+use navigation::{Link, MenuBuilder};
+
+use serde_json;
 
 pub fn routes() -> Vec<Route> {
     routes![index, static_files]
@@ -21,15 +23,32 @@ pub fn routes() -> Vec<Route> {
 #[get("/")]
 fn index(meta: State<SatelliteConfig>) -> Template {
     // TODO refactor
-    #[derive(Serialize)]
+    #[derive(Serialize, Debug)]
     struct IndexContext<'a> {
         meta: &'a SatelliteConfig,
+        menus: HashMap<String, Vec<Link>>,
         data: Vec<String>,
     }
+
+    let meta: &SatelliteConfig = meta.inner();
+    let main_menu = meta.menus().get("main").unwrap();
+    let mut builder = MenuBuilder::new(main_menu);
+    builder.add_class("nav-link");
+    builder.set_active("/");
+
+    let mut menus = HashMap::new();
+    menus.insert("main".to_string(), builder.finalize());
+
+    // active
+    // nav-link
+
     let context = IndexContext {
-        meta: meta.inner(),
+        meta,
+        menus,
         data: vec![],
     };
+
+    println!("{}", serde_json::to_string_pretty(&context).unwrap());
 
     Template::render("frontend/index", &context)
 }

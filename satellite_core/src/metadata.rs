@@ -20,7 +20,8 @@ pub struct SatelliteConfig {
     authors: Vec<Author>,
     #[serde(default)]
     sidebar: Sidebar,
-    // TODO header (menu), footer. The same way as sidebar
+    #[serde(default)]
+    menus: HashMap<String, Vec<Link>>,
     // TODO add more config fields
 }
 
@@ -42,6 +43,10 @@ impl SatelliteConfig {
                 },
             }
         })
+    }
+
+    pub fn menus(&self) -> &HashMap<String, Vec<Link>> {
+        &self.menus
     }
 }
 
@@ -97,14 +102,8 @@ impl<'de> Deserialize<'de> for Author {
 pub struct AuthorParseError;
 
 /// Wrapper around `HashMap<String, SidebarItem>` for storing the sidebar.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub struct Sidebar(HashMap<String, SidebarItem>);
-
-impl Default for Sidebar {
-    fn default() -> Self {
-        Sidebar(HashMap::default())
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
@@ -159,6 +158,7 @@ mod tests {
                 }
             ],
             sidebar: Sidebar(HashMap::new()),
+            menus: HashMap::new(),
         });
     }
 

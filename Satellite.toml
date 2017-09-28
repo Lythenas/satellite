@@ -30,3 +30,11 @@ content = [
     { text = "Twitter", url = "https://twitter.com/lythenas" },
 ]
 
+[menus]
+main = [
+    { text = "Home", url = "/" },
+    { text = "New features", url = "/new-features" },
+    { text = "Press", url = "/press" },
+    { text = "New hires", url = "/new-hires" },
+    { text = "About", url = "/about" }
+]
