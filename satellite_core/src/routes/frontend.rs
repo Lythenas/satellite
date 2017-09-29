@@ -12,6 +12,18 @@ pub fn routes() -> Vec<Route> {
 
 #[get("/")]
 fn index(mut template_builder: TemplateBuilder<()>) -> Template {
+    // TODO make this easier to do.
+    // probably just add callbacks to TemplateBuilder that get called when rendering the template
+    // something like this:
+    // template_builder.build_menu("main", |builder| {
+    //      builder.add_class("nav-link");
+    //      builder.set_active("/");
+    // });
+    //
+    // TODO maybe also create a global callback that gets called on every route
+    // or create different versions of the TemplateBuilder for different page types
+    // maybe with another generic: TemplateBuilder<Data, Type>.
+    // And Type implements TemplateBuilderModifier with one function.
     {
         let main_menu = template_builder.menu_builder("main");
         main_menu.add_class("nav-link");
