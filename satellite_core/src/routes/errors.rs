@@ -1,36 +1,22 @@
-use std::collections::HashMap;
-
-use rocket::{self, Catcher, State};
+use rocket::{self, Catcher};
 use rocket::Request;
 use rocket_contrib::Template;
 
-use metadata::SatelliteConfig;
-use navigation::{MenuBuilder, Link};
+use template_builder::TemplateBuilder;
 
 #[error(404)]
 fn not_found(req: &Request) -> Template {
-    #[derive(Serialize)]
-    struct Context<'a> {
-        meta: &'a SatelliteConfig,
-        menus: HashMap<String, Vec<Link>>,
+    let mut template_builder = req.guard::<TemplateBuilder<()>>().unwrap();
+
+    {
+        let main_menu = template_builder.menu_builder("main");
+        main_menu.add_class("nav-link");
     }
 
-    let meta = req.guard::<State<SatelliteConfig>>().unwrap();
-    let meta = meta.inner();
+    template_builder.set_data(());
 
-    let main_menu = meta.menus().get("main").unwrap();
-    let mut builder = MenuBuilder::new(main_menu);
-    builder.add_class("nav-link");
-
-    let mut menus = HashMap::new();
-    menus.insert("main".to_string(), builder.finalize());
-
-    let context = Context {
-        meta,
-        menus,
-    };
-
-    Template::render("frontend/404", &context)
+    // TODO remove unwrap
+    template_builder.render("frontend/404").unwrap()
 }
 
 pub fn errors() -> Vec<Catcher> {

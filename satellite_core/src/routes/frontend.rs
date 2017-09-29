@@ -1,51 +1,27 @@
 use std::path::{Path, PathBuf};
-use std::collections::HashMap;
 
 use rocket_contrib::Template;
 use rocket::response::NamedFile;
-use rocket::{Route, State};
+use rocket::Route;
 
-use metadata::SatelliteConfig;
-use navigation::{Link, MenuBuilder};
-
-use serde_json;
+use template_builder::TemplateBuilder;
 
 pub fn routes() -> Vec<Route> {
     routes![index, static_files]
 }
 
-// TODO add a Template guard instead of State<SatelliteConfig>.
-// The guard should take care of setting everything up.
-// It loads e.g. the dynamically loaded parts of the sidebar (also TODO).
-// We then just pass it the template name and a inner context containing only individual data
-// e.g. list of posts for index.
-
 #[get("/")]
-fn index(meta: State<SatelliteConfig>) -> Template {
-    // TODO refactor
-    #[derive(Serialize, Debug)]
-    struct IndexContext<'a> {
-        meta: &'a SatelliteConfig,
-        menus: HashMap<String, Vec<Link>>,
-        data: Vec<String>,
+fn index(mut template_builder: TemplateBuilder<()>) -> Template {
+    {
+        let main_menu = template_builder.menu_builder("main");
+        main_menu.add_class("nav-link");
+        main_menu.set_active("/");
     }
 
-    let meta: &SatelliteConfig = meta.inner();
-    let main_menu = meta.menus().get("main").unwrap();
-    let mut builder = MenuBuilder::new(main_menu);
-    builder.add_class("nav-link");
-    builder.set_active("/");
+    template_builder.set_data(());
 
-    let mut menus = HashMap::new();
-    menus.insert("main".to_string(), builder.finalize());
-
-    let context = IndexContext {
-        meta,
-        menus,
-        data: vec![],
-    };
-
-    Template::render("frontend/index", &context)
+    // TODO make this not use unwrap
+    template_builder.render("frontend/index").unwrap()
 }
 
 // TODO add more routes

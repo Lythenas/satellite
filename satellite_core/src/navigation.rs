@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::string::ToString;
 
+pub static EMPTY_MENU: [Link; 0] = [];
+
 /// Stores information for a link.
 ///
 /// [`NavigationItem`]: enum.NavigationItem.html
@@ -14,6 +16,8 @@ pub struct Link {
 }
 
 impl Link {
+    // TODO remove allow(dead_code) or this method
+    #[allow(dead_code)]
     pub fn new<T: ToString, U: ToString>(text: T, url: U) -> Link {
         Link {
             text: text.to_string(),
@@ -22,6 +26,8 @@ impl Link {
         }
     }
 
+    // TODO remove allow(dead_code) or this method
+    #[allow(dead_code)]
     pub fn with_attributes<T, U>(text: T, url: U, attributes: HashMap<String, String>) -> Link
         where T: ToString, U: ToString
     {
