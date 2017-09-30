@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use std::borrow::Cow;
+use std::marker::PhantomData;
 
 use rocket::{Outcome, State};
 use rocket::request::{self, Request, FromRequest};
-use rocket_contrib::Template;
 use serde::Serialize;
 
 use metadata::SatelliteConfig;
@@ -22,7 +21,7 @@ pub struct TemplateContext<'s, T: Serialize> {
 pub struct ContextBuilder<'s, T: Serialize> {
     meta: &'s SatelliteConfig,
     menu_builders: HashMap<String, MenuBuilder<'s>>,
-    data: Option<T>,
+    data: PhantomData<*const T>,
 }
 
 impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
@@ -43,7 +42,13 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
         ContextBuilder {
             meta,
             menu_builders: HashMap::new(),
-            data: None }
+            data: PhantomData,
+        }
+    }
+
+    pub fn prepare_for<P>(&mut self, p: P)
+    where P: PrepareContextBuilder<T> {
+        p.prepare(self);
     }
 
     pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder<'s> {
@@ -59,11 +64,11 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     pub fn finalize_with_data(mut self, data: T) -> TemplateContext<'s, T> {
         self.add_all_menu_builders();
 
-        let mut menus = HashMap::new();
-
-        for (key, menu) in self.menu_builders.into_iter() {
-            menus.insert(key, menu.finalize());
-        }
+        let menus = self.menu_builders.into_iter()
+            .map(|(k, menu)| {
+                (k, menu.finalize())
+            })
+            .collect();
 
         TemplateContext {
             meta: self.meta,
@@ -85,4 +90,9 @@ impl<'s, T> ContextBuilder<'s, T> where T: Serialize + Default {
         self.finalize_with_data(T::default())
     }
 
+}
+
+// TODO decide if self needs to be consumed here.
+pub trait PrepareContextBuilder<T> where T: Serialize {
+    fn prepare(self, context_builder: &mut ContextBuilder<T>);
 }
