@@ -26,7 +26,7 @@ mod navigation;
 ///
 /// [`TemplateBuilder`]: struct.TemplateBuilder.html
 /// [`Template`]: https://api.rocket.rs/rocket_contrib/struct.Template.html
-mod template_builder;
+mod context_builder;
 
 use rocket_contrib::Template;
 use rocket::Rocket;

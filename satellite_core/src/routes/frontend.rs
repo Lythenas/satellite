@@ -4,14 +4,14 @@ use rocket_contrib::Template;
 use rocket::response::NamedFile;
 use rocket::Route;
 
-use template_builder::TemplateBuilder;
+use context_builder::ContextBuilder;
 
 pub fn routes() -> Vec<Route> {
     routes![index, static_files]
 }
 
 #[get("/")]
-fn index(mut template_builder: TemplateBuilder<()>) -> Template {
+fn index(mut template_builder: ContextBuilder<()>) -> Template {
     // TODO make this easier to do.
     // probably just add callbacks to TemplateBuilder that get called when rendering the template
     // something like this:
@@ -30,10 +30,9 @@ fn index(mut template_builder: TemplateBuilder<()>) -> Template {
         main_menu.set_active("/");
     }
 
-    template_builder.set_data(());
+    let context = template_builder.finalize_with_data(());
 
-    // TODO make this not use unwrap
-    template_builder.render("frontend/index").unwrap()
+    Template::render("frontend/index", &context)
 }
 
 // TODO add more routes

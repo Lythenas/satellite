@@ -2,21 +2,20 @@ use rocket::{self, Catcher};
 use rocket::Request;
 use rocket_contrib::Template;
 
-use template_builder::TemplateBuilder;
+use context_builder::ContextBuilder;
 
 #[error(404)]
 fn not_found(req: &Request) -> Template {
-    let mut template_builder = req.guard::<TemplateBuilder<()>>().unwrap();
+    let mut context_builder = req.guard::<ContextBuilder<()>>().unwrap();
 
     {
-        let main_menu = template_builder.menu_builder("main");
+        let main_menu = context_builder.menu_builder("main");
         main_menu.add_class("nav-link");
     }
 
-    template_builder.set_data(());
+    let context = context_builder.finalize_with_default();
 
-    // TODO remove unwrap
-    template_builder.render("frontend/404").unwrap()
+    Template::render("frontend/404", &context)
 }
 
 pub fn errors() -> Vec<Catcher> {

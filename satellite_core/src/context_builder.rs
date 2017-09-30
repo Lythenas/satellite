@@ -19,68 +19,56 @@ pub struct TemplateContext<'s, T: Serialize> {
 // TODO add dynamically loadable data to TemplateBuilder (could also be done in route when needed)
 // e.g. for sidebar
 
-pub struct TemplateBuilder<'s, T: Serialize> {
+pub struct ContextBuilder<'s, T: Serialize> {
     meta: &'s SatelliteConfig,
-    menus: HashMap<String, MenuBuilder<'s>>,
+    menu_builders: HashMap<String, MenuBuilder<'s>>,
     data: Option<T>,
 }
 
-impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for TemplateBuilder<'a, T> {
+impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let meta = request.guard::<State<SatelliteConfig>>()?.inner();
-        Outcome::Success(TemplateBuilder::new(meta))
+        Outcome::Success(ContextBuilder::new(meta))
     }
 }
 
-impl<'s, T: Serialize> TemplateBuilder<'s, T> {
+impl<'s, T: Serialize> ContextBuilder<'s, T> {
 
     /// Creates a new `TemplateBuilder` from the given [`SatelliteConfig`].
     ///
     /// [`SatelliteConfig`]: struct.SatelliteConfig.html
     pub fn new(meta: &'s SatelliteConfig) -> Self {
-        TemplateBuilder {
+        ContextBuilder {
             meta,
-            menus: HashMap::new(),
+            menu_builders: HashMap::new(),
             data: None }
     }
 
     pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder<'s> {
         let menus = self.meta.menus();
-        self.menus.entry(key.to_string()).or_insert_with(|| {
+        self.menu_builders.entry(key.to_string()).or_insert_with(|| {
             let menu: &[Link] = menus.get(key)
                 .map(|menu| menu.as_ref()).unwrap_or(&EMPTY_MENU);
             MenuBuilder::new(menu)
         })
     }
 
-    pub fn set_data(&mut self, data: T) {
-        self.data = Some(data);
-    }
-
-    pub fn render<N>(self, name: N) -> Result<Template, DataFieldRequiredError>
-    where N: Into<Cow<'static, str>> {
-        let context = self.into_context()?;
-        Ok(Template::render(name, &context))
-    }
-
-    fn into_context(mut self) -> Result<TemplateContext<'s, T>, DataFieldRequiredError> {
+    /// Finalizes the Context with the given data.
+    pub fn finalize_with_data(mut self, data: T) -> TemplateContext<'s, T> {
         self.add_all_menu_builders();
 
         let mut menus = HashMap::new();
 
-        for (key, menu) in self.menus.into_iter() {
+        for (key, menu) in self.menu_builders.into_iter() {
             menus.insert(key, menu.finalize());
         }
 
-        match self.data {
-            Some(data) => Ok(TemplateContext {
-                meta: self.meta,
-                menus,
-                data,
-            }),
-            None => Err(DataFieldRequiredError),
+        TemplateContext {
+            meta: self.meta,
+            menus,
+            data,
         }
     }
 
@@ -91,6 +79,10 @@ impl<'s, T: Serialize> TemplateBuilder<'s, T> {
     }
 }
 
-// TODO make this a real error
-#[derive(Debug)]
-pub struct DataFieldRequiredError;
+impl<'s, T> ContextBuilder<'s, T> where T: Serialize + Default {
+
+    pub fn finalize_with_default(self) -> TemplateContext<'s, T> {
+        self.finalize_with_data(T::default())
+    }
+
+}
