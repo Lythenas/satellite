@@ -1,8 +1,8 @@
 # Satellite
 
-This is an attempt to create a [Rocket] based CMS (or at least blog) in Rust.
+This is an attempt to create a [Rocket] based CMS (or at least blog) in [Rust].
 
-Currently this project doesn't do very much.
+Currently this project currently doesn't do very much.
 
 ## Goals
 - [ ] Easy to use CMS/Blog
@@ -14,7 +14,7 @@ Currently this project doesn't do very much.
 ## TODO
 - Add database support (with [diesel])
 - Add more routes for viewing posts, users, pages, ...
-- Build a backend
+- Build a backend   
 
 ## Still Undecided
 - Database structure
@@ -22,4 +22,6 @@ Currently this project doesn't do very much.
 - JS-framework for the backend
 
 
-[diesel]: https://crates.io/crates/diesel
+[diesel]: https://diesel.rs
+[rocket]: https://rocket.rs
+[rust]: https://www.rust-lang.org
