@@ -45,8 +45,11 @@ impl Metadata {
         })
     }
 
+    // TODO remove allow(dead_code)
+
     /// Creates a new blanket instance of `Metadata`.
     /// All fields will be empty Strings, Vecs and HashMaps.
+    #[allow(dead_code)]
     pub fn new() -> Metadata {
         Metadata {
             title: String::new(),
@@ -58,26 +61,31 @@ impl Metadata {
     }
 
     /// Getter for `Metadata.title`.
+    #[allow(dead_code)]
     pub fn title(&self) -> &str {
         self.title.as_ref()
     }
 
     /// Getter for `Metadata.description`.
+    #[allow(dead_code)]
     pub fn description(&self) -> &str {
         self.description.as_ref()
     }
 
     /// Getter for `Metadata.authors`.
+    #[allow(dead_code)]
     pub fn authors(&self) -> &[Author] {
         self.authors.as_ref()
     }
 
     /// Getter for `Metadata.sidebar`.
+    #[allow(dead_code)]
     pub fn sidebar(&self) -> &HashMap<String, SidebarItem> {
         &self.sidebar
     }
 
     /// Getter for `Metadata.menus`.
+    #[allow(dead_code)]
     pub fn menus(&self) -> &HashMap<String, Vec<Link>> {
         &self.menus
     }
