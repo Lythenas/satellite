@@ -14,7 +14,7 @@ use navigation::Link;
 ///
 /// [`Template::render`]: https://api.rocket.rs/rocket_contrib/struct.Template.html#method.render
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct SatelliteConfig {
+pub struct Metadata {
     title: String,
     description: String,
     authors: Vec<Author>,
@@ -25,7 +25,7 @@ pub struct SatelliteConfig {
     // TODO add more config fields
 }
 
-impl SatelliteConfig {
+impl Metadata {
     pub fn fairing() -> AdHoc {
         AdHoc::on_attach(|rocket| {
             let mut input = String::new();
@@ -33,7 +33,7 @@ impl SatelliteConfig {
                 f.read_to_string(&mut input)
             }).unwrap();
 
-            let metadata: Result<SatelliteConfig, _> = toml::from_str(input.as_str());
+            let metadata: Result<Metadata, _> = toml::from_str(input.as_str());
 
             match metadata {
                 Ok(metadata) => Ok(rocket.manage(metadata)),
@@ -142,9 +142,9 @@ mod tests {
             ]
         "#;
 
-        let meta: SatelliteConfig = toml::from_str(data).unwrap();
+        let meta: Metadata = toml::from_str(data).unwrap();
 
-        assert_eq!(meta, SatelliteConfig {
+        assert_eq!(meta, Metadata {
             title: "Some Title".to_string(),
             description: "Some description".to_string(),
             authors: vec![

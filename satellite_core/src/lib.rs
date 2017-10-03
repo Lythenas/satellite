@@ -21,7 +21,7 @@ mod metadata;
 /// [`NaviagationBuilder`]: struct.NavigationBuilder.html
 mod navigation;
 
-/// Contains [`TemplateBuilder`].
+/// Contains [`ContextBuilder`].
 /// Which is a useful guard for all routes that return a [`Template`].
 ///
 /// [`TemplateBuilder`]: struct.TemplateBuilder.html
@@ -31,7 +31,7 @@ mod context_builder;
 use rocket_contrib::Template;
 use rocket::Rocket;
 
-use metadata::SatelliteConfig;
+use metadata::Metadata;
 
 /// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///
@@ -46,7 +46,7 @@ use metadata::SatelliteConfig;
 pub fn rocket() -> Rocket {
     let rocket = rocket::ignite()
         .attach(Template::fairing())
-        .attach(SatelliteConfig::fairing());
+        .attach(Metadata::fairing());
 
     let rocket = routes::mount_to(rocket);
     let rocket = routes::add_catchers_to(rocket);

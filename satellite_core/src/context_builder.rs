@@ -5,12 +5,12 @@ use rocket::{Outcome, State};
 use rocket::request::{self, Request, FromRequest};
 use serde::Serialize;
 
-use metadata::SatelliteConfig;
+use metadata::Metadata;
 use navigation::{MenuBuilder, Link, EMPTY_MENU};
 
 #[derive(Debug, Serialize)]
 pub struct TemplateContext<'s, T: Serialize> {
-    meta: &'s SatelliteConfig,
+    meta: &'s Metadata,
     menus: HashMap<String, Vec<Link>>,
     data: T,
 }
@@ -19,7 +19,7 @@ pub struct TemplateContext<'s, T: Serialize> {
 // e.g. for sidebar
 
 pub struct ContextBuilder<'s, T: Serialize> {
-    meta: &'s SatelliteConfig,
+    meta: &'s Metadata,
     menu_builders: HashMap<String, MenuBuilder<'s>>,
     data: PhantomData<*const T>,
 }
@@ -28,7 +28,7 @@ impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
     type Error = ();
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
-        let meta = request.guard::<State<SatelliteConfig>>()?.inner();
+        let meta = request.guard::<State<Metadata>>()?.inner();
         Outcome::Success(ContextBuilder::new(meta))
     }
 }
@@ -38,7 +38,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     /// Creates a new `TemplateBuilder` from the given [`SatelliteConfig`].
     ///
     /// [`SatelliteConfig`]: struct.SatelliteConfig.html
-    pub fn new(meta: &'s SatelliteConfig) -> Self {
+    pub fn new(meta: &'s Metadata) -> Self {
         ContextBuilder {
             meta,
             menu_builders: HashMap::new(),
