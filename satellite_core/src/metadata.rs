@@ -19,7 +19,7 @@ pub struct Metadata {
     description: String,
     authors: Vec<Author>,
     #[serde(default)]
-    sidebar: Sidebar,
+    sidebar: HashMap<String, SidebarItem>,
     #[serde(default)]
     menus: HashMap<String, Vec<Link>>,
     // TODO add more config fields
@@ -29,9 +29,9 @@ impl Metadata {
     pub fn fairing() -> AdHoc {
         AdHoc::on_attach(|rocket| {
             let mut input = String::new();
-            File::open("Satellite.toml").and_then(|mut f| {
-                f.read_to_string(&mut input)
-            }).unwrap();
+            File::open("Satellite.toml")
+                .and_then(|mut f| f.read_to_string(&mut input))
+                .unwrap();
 
             let metadata: Result<Metadata, _> = toml::from_str(input.as_str());
 
@@ -40,9 +40,21 @@ impl Metadata {
                 Err(e) => {
                     println!("{}", e);
                     Err(rocket)
-                },
+                }
             }
         })
+    }
+
+    /// Creates a new blanket instance of `Metadata`.
+    /// All fields will be empty Strings, Vecs and HashMaps.
+    pub fn new() -> Metadata {
+        Metadata {
+            title: String::new(),
+            description: String::new(),
+            authors: Vec::new(),
+            sidebar: HashMap::new(),
+            menus: HashMap::new(),
+        }
     }
 
     /// Getter for `Metadata.title`.
@@ -61,7 +73,7 @@ impl Metadata {
     }
 
     /// Getter for `Metadata.sidebar`.
-    pub fn sidebar(&self) -> &Sidebar {
+    pub fn sidebar(&self) -> &HashMap<String, SidebarItem> {
         &self.sidebar
     }
 
@@ -84,11 +96,17 @@ impl FromStr for Author {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use regex::Regex;
-        let re = Regex::new(r"(.*) <([a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*)>").unwrap();
+        let re = Regex::new(
+            r"(.*) <([a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9-]+(\.[a-z0-9-]+)*)>",
+        ).unwrap();
 
         let cap = re.captures_iter(s).next().ok_or(AuthorParseError)?;
-        let name = cap.get(1).map(|m| m.as_str().to_string()).unwrap_or_default();
-        let email = cap.get(2).map(|m| m.as_str().to_string()).unwrap_or_default();
+        let name = cap.get(1)
+            .map(|m| m.as_str().to_string())
+            .unwrap_or_default();
+        let email = cap.get(2)
+            .map(|m| m.as_str().to_string())
+            .unwrap_or_default();
 
         Ok(Author { name, email })
     }
@@ -96,7 +114,8 @@ impl FromStr for Author {
 
 impl<'de> Deserialize<'de> for Author {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         struct AuthorStringVisitor;
 
@@ -104,13 +123,22 @@ impl<'de> Deserialize<'de> for Author {
             type Value = Author;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a string in the format 'Name <email@example.com>'")
+                write!(
+                    formatter,
+                    "a string in the format 'Name <email@example.com>'"
+                )
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                where E: de::Error
+            where
+                E: de::Error,
             {
-                Author::from_str(v).map_err(|_| E::custom(format!("'{}' is not in the format 'Name <email@example.com>'", v)))
+                Author::from_str(v).map_err(|_| {
+                    E::custom(format!(
+                        "'{}' is not in the format 'Name <email@example.com>'",
+                        v
+                    ))
+                })
             }
         }
 
@@ -121,10 +149,6 @@ impl<'de> Deserialize<'de> for Author {
 /// Represents a parse error for Author.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuthorParseError;
-
-/// Wrapper around `HashMap<String, SidebarItem>` for storing the sidebar.
-#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
-pub struct Sidebar(HashMap<String, SidebarItem>);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content", rename_all = "snake_case")]
@@ -140,6 +164,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn metadata() {
+        let meta = Metadata::new();
+        assert!(meta.title().is_empty());
+        assert!(meta.description().is_empty());
+        assert!(meta.authors().is_empty());
+        assert!(meta.sidebar().is_empty());
+        assert!(meta.menus().is_empty());
+    }
+
+    #[test]
     fn deserialize_metadata() {
         let data = r#"
             title = "Some Title"
@@ -152,35 +186,98 @@ mod tests {
 
         let meta: Metadata = toml::from_str(data).unwrap();
 
-        assert_eq!(meta, Metadata {
-            title: "Some Title".to_string(),
-            description: "Some description".to_string(),
-            authors: vec![
-                Author {
-                    name: "Name".to_string(),
-                    email: "email@author.com".to_string(),
-                },
-                Author {
-                    name: "Another".to_string(),
-                    email: "another@author.net".to_string(),
-                }
-            ],
-            sidebar: Sidebar(HashMap::new()),
-            menus: HashMap::new(),
-        });
+        assert_eq!(
+            meta,
+            Metadata {
+                title: "Some Title".to_string(),
+                description: "Some description".to_string(),
+                authors: vec![
+                    Author {
+                        name: "Name".to_string(),
+                        email: "email@author.com".to_string(),
+                    },
+                    Author {
+                        name: "Another".to_string(),
+                        email: "another@author.net".to_string(),
+                    },
+                ],
+                sidebar: HashMap::new(),
+                menus: HashMap::new(),
+            }
+        );
     }
 
     #[test]
     fn deserialize_author() {
-        assert_eq!(Ok(Author {
-            name: "Random Name".to_string(),
-            email: "random@mail.tld".to_string(),
-        }), "Random Name <random@mail.tld>".parse());
+        assert_eq!(
+            Ok(Author {
+                name: "Random Name".to_string(),
+                email: "random@mail.tld".to_string(),
+            }),
+            "Random Name <random@mail.tld>".parse()
+        );
 
         assert!("".parse::<Author>().is_err());
         assert!("<>".parse::<Author>().is_err());
         assert!("<random@mail.tld>".parse::<Author>().is_err());
         assert!("Random Name".parse::<Author>().is_err());
+    }
+
+    #[test]
+    fn deserialize_sidebar_item() {
+        let data = r#"
+            type = "text"
+            content = """
+            Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
+            I love chupa chups chocolate cake lollipop I love cheesecake.
+            """
+        "#;
+        let sidebar_item: SidebarItem = toml::from_str(data).unwrap();
+
+        assert_eq!(
+            sidebar_item,
+            SidebarItem::Text(String::from(
+                "Cupcake ipsum dolor sit amet sugar plum. \
+                   Cheesecake chocolate lemon drops. I love chupa chups chocolate cake lollipop \
+                   I love cheesecake.",
+            ))
+        );
+
+        let data = r#"
+            type = "text_inset"
+            content = """
+            Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
+            I love chupa chups chocolate cake lollipop I love cheesecake.
+            """
+        "#;
+        let sidebar_item: SidebarItem = toml::from_str(data).unwrap();
+
+        assert_eq!(
+            sidebar_item,
+            SidebarItem::TextInset(String::from(
+                "Cupcake ipsum dolor sit amet sugar plum. \
+                   Cheesecake chocolate lemon drops. I love chupa chups chocolate cake lollipop \
+                   I love cheesecake.",
+            ))
+        );
+
+        let data = r#"
+            type = "links"
+            content = [
+                { text = "Link 1", url = "https://rust-lang.org" },
+                { text = "Link 2", url = "https://crates.io" },
+            ]
+        "#;
+        let sidebar_item: SidebarItem = toml::from_str(data).unwrap();
+
+        assert_eq!(
+            sidebar_item,
+            SidebarItem::Links(vec![
+                Link::new("Link 1", "https://rust-lang.org"),
+                Link::new("Link 2", "https://crates.io"),
+            ])
+        );
+
     }
 
 }

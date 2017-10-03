@@ -29,7 +29,9 @@ impl Link {
     // TODO remove allow(dead_code) or this method
     #[allow(dead_code)]
     pub fn with_attributes<T, U>(text: T, url: U, attributes: HashMap<String, String>) -> Link
-        where T: ToString, U: ToString
+    where
+        T: ToString,
+        U: ToString,
     {
         Link {
             text: text.to_string(),
@@ -41,7 +43,9 @@ impl Link {
     /// Adds a class to the class attribute string.
     /// Does not check for duplicate classes.
     pub fn add_class(&mut self, class: &str) {
-        let classes = self.attributes.entry("class".to_string()).or_insert("".to_string());
+        let classes = self.attributes.entry("class".to_string()).or_insert(
+            "".to_string(),
+        );
         if !classes.is_empty() {
             classes.push_str(" ");
         }
@@ -71,7 +75,6 @@ pub struct MenuBuilder<'b> {
 }
 
 impl<'b> MenuBuilder<'b> {
-
     pub fn new(menu: &[Link]) -> MenuBuilder {
         MenuBuilder {
             menu: menu.to_owned(),
@@ -83,7 +86,9 @@ impl<'b> MenuBuilder<'b> {
     pub fn add_class(&mut self, class: &str) {
         // TODO don't store classes as string. store them as a set and join it later.
         // this removes duplicates and avoids unnecessary whitespace at beginning without checks.
-        let class_attr = self.attributes.entry("class".to_string()).or_insert("".to_string());
+        let class_attr = self.attributes.entry("class".to_string()).or_insert(
+            "".to_string(),
+        );
         if !class_attr.is_empty() {
             class_attr.push_str(" ");
         }
@@ -95,14 +100,16 @@ impl<'b> MenuBuilder<'b> {
     }
 
     pub fn finalize(self) -> Vec<Link> {
-        self.menu.iter().map(|link| {
-            let mut link = link.clone();
-            link.extend_attributes(self.attributes.clone());
-            add_class_if_active(&mut link, self.active);
-            link
-        }).collect()
+        self.menu
+            .iter()
+            .map(|link| {
+                let mut link = link.clone();
+                link.extend_attributes(self.attributes.clone());
+                add_class_if_active(&mut link, self.active);
+                link
+            })
+            .collect()
     }
-
 }
 
 fn add_class_if_active(link: &mut Link, active: Option<&str>) {
@@ -124,11 +131,14 @@ mod tests {
     #[test]
     fn create_link() {
         let link = link();
-        assert_eq!(link, Link {
-            text: String::from("Click here"),
-            url: String::from("https://somewhere.net"),
-            attributes: HashMap::new(),
-        });
+        assert_eq!(
+            link,
+            Link {
+                text: String::from("Click here"),
+                url: String::from("https://somewhere.net"),
+                attributes: HashMap::new(),
+            }
+        );
     }
 
     #[test]
@@ -173,9 +183,9 @@ mod tests {
         let menu = builder.finalize();
 
         assert_eq!(menu[0], {
-                let mut attrs = HashMap::new();
-                attrs.insert(String::from("class"), String::from("main-nav"));
-                Link::with_attributes("Home", "/", attrs)
+            let mut attrs = HashMap::new();
+            attrs.insert(String::from("class"), String::from("main-nav"));
+            Link::with_attributes("Home", "/", attrs)
         });
         assert_eq!(menu[1], {
             let mut attrs = HashMap::new();

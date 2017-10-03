@@ -44,7 +44,7 @@ use metadata::Metadata;
 ///
 /// [`rocket::Rocket`]: https://api.rocket.rs/rocket/struct.Rocket.html
 pub fn rocket() -> Rocket {
-    let rocket = rocket::ignite()
+    let rocket = rocket::ignite() // _
         .attach(Template::fairing())
         .attach(Metadata::fairing());
 

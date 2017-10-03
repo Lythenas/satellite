@@ -34,7 +34,6 @@ impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
 }
 
 impl<'s, T: Serialize> ContextBuilder<'s, T> {
-
     /// Creates a new `TemplateBuilder` from the given [`SatelliteConfig`].
     ///
     /// [`SatelliteConfig`]: struct.SatelliteConfig.html
@@ -47,27 +46,31 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     }
 
     pub fn prepare_for<P>(&mut self, p: P)
-    where P: PrepareContextBuilder<T> {
+    where
+        P: PrepareContextBuilder<T>,
+    {
         p.prepare(self);
     }
 
     pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder<'s> {
         let menus = self.meta.menus();
-        self.menu_builders.entry(key.to_string()).or_insert_with(|| {
-            let menu: &[Link] = menus.get(key)
-                .map(|menu| menu.as_ref()).unwrap_or(&EMPTY_MENU);
-            MenuBuilder::new(menu)
-        })
+        self.menu_builders.entry(key.to_string()).or_insert_with(
+            || {
+                let menu: &[Link] = menus.get(key).map(|menu| menu.as_ref()).unwrap_or(
+                    &EMPTY_MENU,
+                );
+                MenuBuilder::new(menu)
+            },
+        )
     }
 
     /// Finalizes the Context with the given data.
     pub fn finalize_with_data(mut self, data: T) -> TemplateContext<'s, T> {
         self.add_all_menu_builders();
 
-        let menus = self.menu_builders.into_iter()
-            .map(|(k, menu)| {
-                (k, menu.finalize())
-            })
+        let menus = self.menu_builders
+            .into_iter()
+            .map(|(k, menu)| (k, menu.finalize()))
             .collect();
 
         TemplateContext {
@@ -84,15 +87,19 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     }
 }
 
-impl<'s, T> ContextBuilder<'s, T> where T: Serialize + Default {
-
+impl<'s, T> ContextBuilder<'s, T>
+where
+    T: Serialize + Default,
+{
     pub fn finalize_with_default(self) -> TemplateContext<'s, T> {
         self.finalize_with_data(T::default())
     }
-
 }
 
 // TODO decide if self needs to be consumed here.
-pub trait PrepareContextBuilder<T> where T: Serialize {
+pub trait PrepareContextBuilder<T>
+where
+    T: Serialize,
+{
     fn prepare(self, context_builder: &mut ContextBuilder<T>);
 }

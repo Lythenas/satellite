@@ -10,8 +10,10 @@ use rocket::Rocket;
 /// [`Rocket`]: https://api.rocket.rs/rocket/struct.Rocket.html
 /// [`satellite_core::rocket`]: fn.rocket.html
 pub fn mount_to(rocket: Rocket) -> Rocket {
-    rocket.mount("/", frontend::routes())
-        .mount("/admin", backend::routes())
+    rocket.mount("/", frontend::routes()).mount(
+        "/admin",
+        backend::routes(),
+    )
 }
 
 pub fn add_catchers_to(rocket: Rocket) -> Rocket {
