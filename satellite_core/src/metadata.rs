@@ -45,6 +45,27 @@ impl Metadata {
         })
     }
 
+    /// Getter for `Metadata.title`.
+    pub fn title(&self) -> &str {
+        self.title.as_ref()
+    }
+
+    /// Getter for `Metadata.description`.
+    pub fn description(&self) -> &str {
+        self.description.as_ref()
+    }
+
+    /// Getter for `Metadata.authors`.
+    pub fn authors(&self) -> &[Author] {
+        self.authors.as_ref()
+    }
+
+    /// Getter for `Metadata.sidebar`.
+    pub fn sidebar(&self) -> &Sidebar {
+        &self.sidebar
+    }
+
+    /// Getter for `Metadata.menus`.
     pub fn menus(&self) -> &HashMap<String, Vec<Link>> {
         &self.menus
     }
@@ -119,19 +140,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn deserialize_author() {
-        assert_eq!(Ok(Author {
-            name: "Random Name".to_string(),
-            email: "random@mail.tld".to_string(),
-        }), "Random Name <random@mail.tld>".parse());
-
-        assert!("".parse::<Author>().is_err());
-        assert!("<>".parse::<Author>().is_err());
-        assert!("<random@mail.tld>".parse::<Author>().is_err());
-        assert!("Random Name".parse::<Author>().is_err());
-    }
-
-    #[test]
     fn deserialize_metadata() {
         let data = r#"
             title = "Some Title"
@@ -160,6 +168,19 @@ mod tests {
             sidebar: Sidebar(HashMap::new()),
             menus: HashMap::new(),
         });
+    }
+
+    #[test]
+    fn deserialize_author() {
+        assert_eq!(Ok(Author {
+            name: "Random Name".to_string(),
+            email: "random@mail.tld".to_string(),
+        }), "Random Name <random@mail.tld>".parse());
+
+        assert!("".parse::<Author>().is_err());
+        assert!("<>".parse::<Author>().is_err());
+        assert!("<random@mail.tld>".parse::<Author>().is_err());
+        assert!("Random Name".parse::<Author>().is_err());
     }
 
 }
