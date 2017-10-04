@@ -45,13 +45,6 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
         }
     }
 
-    pub fn prepare_for<P>(&mut self, p: P)
-    where
-        P: PrepareContextBuilder<T>,
-    {
-        p.prepare(self);
-    }
-
     pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder<'s> {
         let menus = self.meta.menus();
         self.menu_builders.entry(key.to_string()).or_insert_with(
@@ -94,12 +87,4 @@ where
     pub fn finalize_with_default(self) -> TemplateContext<'s, T> {
         self.finalize_with_data(T::default())
     }
-}
-
-// TODO decide if self needs to be consumed here.
-pub trait PrepareContextBuilder<T>
-where
-    T: Serialize,
-{
-    fn prepare(self, context_builder: &mut ContextBuilder<T>);
 }
