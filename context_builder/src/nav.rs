@@ -13,6 +13,10 @@ pub struct Link {
     url: String,
     #[serde(default)]
     attributes: HashMap<String, String>,
+    // TODO make this store a Vec<String> for classes etc. and add a custom serde serializer
+    // maybe make attributes: HashMap<String, Attribute>
+    // and Attribute is a enum of either Vec<String> for classes, HashMap<String, String> for style
+    // or just plain String for everything else.
 }
 
 impl Link {

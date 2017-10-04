@@ -8,7 +8,7 @@ use rocket::fairing::AdHoc;
 use toml;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 
-use navigation::Link;
+use nav::Link;
 
 /// This struct is used to hold meta data for contexts to be passed to [`Template::render`]
 ///

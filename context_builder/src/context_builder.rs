@@ -5,8 +5,8 @@ use rocket::{Outcome, State};
 use rocket::request::{self, Request, FromRequest};
 use serde::Serialize;
 
-use metadata::Metadata;
-use navigation::{MenuBuilder, Link, EMPTY_MENU};
+use meta::Metadata;
+use nav::{MenuBuilder, Link, EMPTY_MENU};
 
 #[derive(Debug, Serialize)]
 pub struct TemplateContext<'s, T: Serialize> {

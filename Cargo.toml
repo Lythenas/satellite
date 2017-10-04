@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "satellite_core/",
+    "context_builder/",
 ]
 
 [package]
@@ -9,4 +9,14 @@ version = "0.1.0"
 authors = ["Matthias Seiffert <lythenas@hotmail.de>"]
 
 [dependencies]
-satellite_core = { path = "satellite_core/" }
+rocket = "0.3"
+rocket_codegen = "0.3"
+serde = "1.0"
+serde_derive = "1.0"
+
+context_builder = { path = "context_builder/" }
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["handlebars_templates"]
