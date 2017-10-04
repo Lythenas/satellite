@@ -235,10 +235,8 @@ mod tests {
     fn deserialize_sidebar_item() {
         let data = r#"
             type = "text"
-            content = """
-            Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
-            I love chupa chups chocolate cake lollipop I love cheesecake.
-            """
+            content = """Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
+            I love chupa chups chocolate cake lollipop I love cheesecake."""
         "#;
         let sidebar_item: SidebarItem = toml::from_str(data).unwrap();
 
@@ -253,10 +251,8 @@ mod tests {
 
         let data = r#"
             type = "text_inset"
-            content = """
-            Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
-            I love chupa chups chocolate cake lollipop I love cheesecake.
-            """
+            content = """Cupcake ipsum dolor sit amet sugar plum. Cheesecake chocolate lemon drops. \
+            I love chupa chups chocolate cake lollipop I love cheesecake."""
         "#;
         let sidebar_item: SidebarItem = toml::from_str(data).unwrap();
 
