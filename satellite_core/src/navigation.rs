@@ -68,6 +68,8 @@ impl Link {
     }
 }
 
+/// Builder for `Vec<Link>`.
+/// [`Link`](struct.Link.html)
 pub struct MenuBuilder<'b> {
     menu: Vec<Link>,
     active: Option<&'b str>,

@@ -11,27 +11,28 @@ extern crate regex;
 extern crate toml;
 
 /// Contains all the routes for Satellite.
+/// (private)
 mod routes;
 
 /// Contains Metadata structs for use in routes.
-mod metadata;
+pub mod metadata;
 
-/// Contains [`NavigationBuilder´] and other navigation related structs and methods.
-///
-/// [`NaviagationBuilder`]: struct.NavigationBuilder.html
-mod navigation;
+/// Contains helpers for building menus and links.
+pub mod navigation;
 
 /// Contains [`ContextBuilder`].
 /// Which is a useful guard for all routes that return a [`Template`].
 ///
 /// [`TemplateBuilder`]: struct.TemplateBuilder.html
 /// [`Template`]: https://api.rocket.rs/rocket_contrib/struct.Template.html
-mod context_builder;
+pub mod context_builder;
 
 use rocket_contrib::Template;
 use rocket::Rocket;
 
-use metadata::Metadata;
+// TODO rethink how to use this module/library
+pub use metadata::Metadata;
+pub use context_builder::ContextBuilder;
 
 /// Creates a new [`rocket::Rocket`] instance ready to launch the cms.
 ///

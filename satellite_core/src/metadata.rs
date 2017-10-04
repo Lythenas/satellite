@@ -92,7 +92,8 @@ impl Metadata {
 }
 
 /// Holds the name and email address of one author.
-/// Used in [`Metadata`]: struct.Metadata.html
+/// Used by [`Metadata`]
+/// [`Metadata`]: struct.Metadata.html
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Author {
     name: String,
