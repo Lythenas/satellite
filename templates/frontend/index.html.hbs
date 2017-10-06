@@ -1,4 +1,13 @@
 {{#*inline "blog_main"}}
+    {{#each data}}
+        <div class="blog-post">
+            <h2 class="blog-post-title">{{this.title}}</h2>
+            <p class="blog-post-meta">{{this.published_at}} by {{this.author}}</p>
+
+            (TODO markdown formatting here)
+            <p>{{this.body}}</p>
+        </div>
+    {{/each}}
     <div class="blog-post">
         <h2 class="blog-post-title">Sample blog post</h2>
         <p class="blog-post-meta">January 1, 2014 by <a href="#">Mark</a></p>
