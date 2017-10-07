@@ -7,6 +7,7 @@ use rocket::response::NamedFile;
 use rocket::Route;
 use rocket::response::Redirect;
 use rocket::request::Form;
+use rocket::response::Flash;
 
 use context_builder::{ContextBuilder};
 use db::models::Post;
@@ -15,14 +16,15 @@ use db::DbConn;
 use diesel;
 
 pub fn routes() -> Vec<Route> {
-    routes![index, static_files, new_post_form, new_post]
+    routes![index, static_files, new_post_form, new_post, test_flash]
 }
 
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
-    let builder = context_builder.menu_builder("main");
-    builder.add_class("nav-link");
+    let menu_builder = context_builder.menu_builder("main");
+
+    menu_builder.add_class("nav-link");
     if let Some(url) = current_url {
-        builder.set_active(url);
+        menu_builder.set_active(url);
     }
 }
 
@@ -92,8 +94,9 @@ fn new_post_form(mut context_builder: ContextBuilder<NewPostForm>) -> Template {
 }
 
 #[post("/post", data = "<post>")]
-fn new_post(db: DbConn, post: Form<NewPost>, mut context_builder: ContextBuilder<NewPostForm>) -> Result<Redirect, Template> {
+fn new_post(db: DbConn, post: Form<NewPost>, mut context_builder: ContextBuilder<NewPostForm>) -> Result<Flash<Redirect>, Template> {
     // TODO validate more like rocket intends (see: https://github.com/SergioBenitez/Rocket/blob/master/examples/form_validation/src/main.rs)
+    // TODO redo error display
 
     let post = post.into_inner();
     let errors = post.validate();
@@ -120,7 +123,7 @@ fn new_post(db: DbConn, post: Form<NewPost>, mut context_builder: ContextBuilder
         });
         Err(Template::render("frontend/create", &context))
     } else {
-        Ok(Redirect::to("/"))
+        Ok(Flash::success(Redirect::to("/"), "Post created successfully."))
     }
 
 }
@@ -133,6 +136,11 @@ fn insert_post(db: &DbConn, post: &NewPost) -> bool {
         .execute(&**db)
         .map(|num_inserted| num_inserted > 0)
         .unwrap_or(false)
+}
+
+#[get("/test-flash/<name>/<msg>")]
+fn test_flash(name: String, msg: String) -> Flash<Redirect> {
+    Flash::new(Redirect::to("/"), name, msg)
 }
 
 // TODO add more routes

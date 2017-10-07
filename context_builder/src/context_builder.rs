@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::marker::PhantomData;
+use std::convert::AsRef;
 
 use rocket::{Outcome, State};
-use rocket::request::{self, Request, FromRequest};
+use rocket::request::{self, Request, FromRequest, FlashMessage};
 use serde::Serialize;
 
 use meta::Metadata;
@@ -13,6 +14,7 @@ pub struct TemplateContext<'s, T: Serialize> {
     meta: &'s Metadata,
     menus: HashMap<String, Vec<Link>>,
     data: T,
+    flash: Option<SerializableFlash>,
 }
 
 // TODO add dynamically loadable data to TemplateBuilder (could also be done in route when needed)
@@ -22,6 +24,7 @@ pub struct ContextBuilder<'s, T: Serialize> {
     meta: &'s Metadata,
     menu_builders: HashMap<String, MenuBuilder<'s>>,
     data: PhantomData<*const T>,
+    flash: Option<FlashMessage>,
 }
 
 impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
@@ -29,7 +32,9 @@ impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let meta = request.guard::<State<Metadata>>()?.inner();
-        Outcome::Success(ContextBuilder::new(meta))
+        let mut cb = ContextBuilder::new(meta);
+        cb.set_flash(request.guard::<Option<FlashMessage>>()?);
+        Outcome::Success(cb)
     }
 }
 
@@ -42,6 +47,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
             meta,
             menu_builders: HashMap::new(),
             data: PhantomData,
+            flash: None,
         }
     }
 
@@ -53,8 +59,8 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     /// # Examples
     ///
     /// ```rust
-    /// use satellite_core::context_builder::ContextBuilder;
-    /// use satellite_core::metadata::Metadata;
+    /// use context_builder::ContextBuilder;
+    /// use context_builder::Metadata;
     ///
     /// let metadata = Metadata::new();
     /// let mut context_builder: ContextBuilder<()> = ContextBuilder::new(&metadata);
@@ -78,6 +84,12 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
         )
     }
 
+    /// Sets the flash message.
+    /// Accepts an `Option` so you can just pass in the request guard without checking.
+    pub fn set_flash(&mut self, flash: Option<FlashMessage>) {
+        self.flash = flash;
+    }
+
     /// Finalizes the Context with the given data.
     pub fn finalize_with_data(mut self, data: T) -> TemplateContext<'s, T> {
         self.add_all_menu_builders();
@@ -91,6 +103,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
             meta: self.meta,
             menus,
             data,
+            flash: self.flash.map(|flash| flash.into()),
         }
     }
 
@@ -109,5 +122,50 @@ where
     /// [`ContextBuilder.finalize_with_data`]: #method.finalize_with_data
     pub fn finalize_with_default(self) -> TemplateContext<'s, T> {
         self.finalize_with_data(T::default())
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct SerializableFlash {
+    name: FlashName,
+    msg: String,
+}
+
+impl From<FlashMessage> for SerializableFlash {
+    fn from(flash: FlashMessage) -> SerializableFlash {
+        SerializableFlash {
+            name: flash.name().into(),
+            msg: flash.msg().into(),
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all="snake_case")]
+enum FlashName {
+    Primary,
+    Secondary,
+    Success,
+    Warning,
+    #[serde(rename="danger")]
+    Error,
+    Info,
+    Dark,
+    Light,
+}
+
+impl<T: AsRef<str>> From<T> for FlashName {
+    fn from(name: T) -> FlashName {
+        use self::FlashName::*;
+        match name.as_ref() {
+            "primary" => Primary,
+            "secondary" => Secondary,
+            "success" => Success,
+            "warning" => Warning,
+            "error" => Error,
+            "info" => Info,
+            "dark" => Dark,
+            _ => Light,
+        }
     }
 }
