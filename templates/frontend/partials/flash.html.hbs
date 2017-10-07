@@ -2,6 +2,9 @@
     <!-- TODO expand this so it's possible to show multiple alerts here and all attributes should be configurable.
             Maybe move alerts to separate partial -->
     <div class="alert alert-{{name}} alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
         {{msg}}
     </div>
 {{/with}}
