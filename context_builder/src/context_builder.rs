@@ -14,7 +14,7 @@ pub struct TemplateContext<'s, T: Serialize> {
     meta: &'s Metadata,
     menus: HashMap<String, Vec<Link>>,
     data: T,
-    flash: Option<SerializableFlash>,
+    alerts: Vec<Alert>,
 }
 
 // TODO add dynamically loadable data to TemplateBuilder (could also be done in route when needed)
@@ -24,7 +24,7 @@ pub struct ContextBuilder<'s, T: Serialize> {
     meta: &'s Metadata,
     menu_builders: HashMap<String, MenuBuilder<'s>>,
     data: PhantomData<*const T>,
-    flash: Option<FlashMessage>,
+    alerts: Vec<Alert>,
 }
 
 impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
@@ -32,8 +32,14 @@ impl<'a, 'r, T: Serialize> FromRequest<'a, 'r> for ContextBuilder<'a, T> {
 
     fn from_request(request: &'a Request<'r>) -> request::Outcome<Self, Self::Error> {
         let meta = request.guard::<State<Metadata>>()?.inner();
+        let flash = request.guard::<Option<FlashMessage>>()?;
+
         let mut cb = ContextBuilder::new(meta);
-        cb.set_flash(request.guard::<Option<FlashMessage>>()?);
+
+        if let Some(flash) = flash {
+            cb.add_alert(flash.into());
+        }
+
         Outcome::Success(cb)
     }
 }
@@ -47,7 +53,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
             meta,
             menu_builders: HashMap::new(),
             data: PhantomData,
-            flash: None,
+            alerts: Vec::new(),
         }
     }
 
@@ -84,10 +90,9 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
         )
     }
 
-    /// Sets the flash message.
-    /// Accepts an `Option` so you can just pass in the request guard without checking.
-    pub fn set_flash(&mut self, flash: Option<FlashMessage>) {
-        self.flash = flash;
+    /// Adds an alert to the internal list.
+    pub fn add_alert(&mut self, alert: Alert) {
+        self.alerts.push(alert);
     }
 
     /// Finalizes the Context with the given data.
@@ -103,7 +108,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
             meta: self.meta,
             menus,
             data,
-            flash: self.flash.map(|flash| flash.into()),
+            alerts: self.alerts,
         }
     }
 
@@ -125,24 +130,9 @@ where
     }
 }
 
-#[derive(Debug, Serialize)]
-struct SerializableFlash {
-    name: FlashName,
-    msg: String,
-}
-
-impl From<FlashMessage> for SerializableFlash {
-    fn from(flash: FlashMessage) -> SerializableFlash {
-        SerializableFlash {
-            name: flash.name().into(),
-            msg: flash.msg().into(),
-        }
-    }
-}
-
 #[derive(Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all="snake_case")]
-enum FlashName {
+pub enum AlertType {
     Primary,
     Secondary,
     Success,
@@ -154,9 +144,9 @@ enum FlashName {
     Light,
 }
 
-impl<T: AsRef<str>> From<T> for FlashName {
-    fn from(name: T) -> FlashName {
-        use self::FlashName::*;
+impl<T: AsRef<str>> From<T> for AlertType {
+    fn from(name: T) -> AlertType {
+        use self::AlertType::*;
         match name.as_ref() {
             "primary" => Primary,
             "secondary" => Secondary,
@@ -167,5 +157,36 @@ impl<T: AsRef<str>> From<T> for FlashName {
             "dark" => Dark,
             _ => Light,
         }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+pub struct Alert {
+    raw: bool,
+    #[serde(rename="type")]
+    typ: AlertType,
+    heading: Option<String>,
+    msg: String,
+    strong: Option<String>,
+    dismissible: bool,
+}
+
+impl From<FlashMessage> for Alert {
+    fn from(flash: FlashMessage) -> Alert {
+        lookup_flash_message(flash)
+    }
+}
+
+
+fn lookup_flash_message(flash: FlashMessage) -> Alert {
+    // TODO create a lookup source (maybe file or db)
+    // fetch all fields from that file
+    Alert {
+        raw: false,
+        typ: flash.name().into(),
+        heading: None,
+        msg: flash.msg().into(),
+        strong: None,
+        dismissible: false,
     }
 }
