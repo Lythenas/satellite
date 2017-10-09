@@ -168,7 +168,7 @@ pub struct Alert {
     raw: bool,
     #[serde(rename = "type")]
     typ: AlertType,
-    heading: Option<String>,
+    header: Option<String>,
     msg: String,
     strong: Option<String>,
     dismissible: bool,
@@ -187,9 +187,9 @@ fn lookup_flash_message(flash: FlashMessage) -> Alert {
     Alert {
         raw: false,
         typ: flash.name().into(),
-        heading: None,
+        header: None,
         msg: flash.msg().into(),
         strong: None,
-        dismissible: true,
+        dismissible: false,
     }
 }
