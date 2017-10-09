@@ -15,7 +15,7 @@
                 <h4>{{ title }}</h4>
                 <ol class="list-unstyled">
                     {% for link in item.content %}
-                        <li>{{ macros::link(url=link.url, text=link.text, attributes=link.attributes) }}</li>
+                        <li>{{ macros::link(url=link.url, text=link.text, attributes=link.attributes, classes=link.classes) }}</li>
                     {% endfor %}
                 </ol>
             </div>

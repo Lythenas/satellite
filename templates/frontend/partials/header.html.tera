@@ -3,7 +3,7 @@
         <div class="container">
             <nav class="nav">
                 {%for link in menus.main %}
-                    {{ macros::link(url=link.url, text=link.text, attributes=link.attributes) }}
+                    {{ macros::link(url=link.url, text=link.text, attributes=link.attributes, classes=link.classes) }}
                 {% endfor %}
             </nav>
         </div>
