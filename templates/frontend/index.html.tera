@@ -1,13 +1,15 @@
-{{#*inline "blog_main"}}
-    {{#each data}}
-        <div class="blog-post">
-            <h2 class="blog-post-title">{{this.title}}</h2>
-            <p class="blog-post-meta">{{this.published_at}} by {{this.author}}</p>
+{% extends "frontend/base" %}
 
-            (TODO markdown formatting here)
-            <p>{{this.body}}</p>
+{% block blog_main %}
+    {% for post in data %}
+        <div class="blog-post">
+            <h2 class="blog-post-title">{{ post.title }}</h2>
+            <p class="blog-post-meta">{{ post.published_at }} by {{ post.author }}</p>
+
+            {# TODO markdown formatting here #}
+            <p>{{ post.body }}</p>
         </div>
-    {{/each}}
+    {% endfor %}
     <div class="blog-post">
         <h2 class="blog-post-title">Sample blog post</h2>
         <p class="blog-post-meta">January 1, 2014 by <a href="#">Mark</a></p>
@@ -71,6 +73,4 @@
         <a class="btn btn-outline-primary" href="#">Older</a>
         <a class="btn btn-outline-secondary disabled" href="#">Newer</a>
     </nav>
-{{/inline}}
-
-{{~> frontend/base}}
+{% endblock blog_main %}

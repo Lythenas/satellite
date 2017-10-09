@@ -130,14 +130,14 @@ where
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Serialize)]
-#[serde(rename_all="snake_case")]
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AlertType {
     Primary,
     Secondary,
     Success,
     Warning,
-    #[serde(rename="danger")]
+    #[serde(rename = "danger")]
     Error,
     Info,
     Dark,
@@ -160,10 +160,13 @@ impl<T: AsRef<str>> From<T> for AlertType {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Serialize)]
+// TODO maybe encapsulate Alert in an enum for easier deserialization
+// something like Alert::Inline(AlertData...) or Alert::Cached(key).
+
+#[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Alert {
     raw: bool,
-    #[serde(rename="type")]
+    #[serde(rename = "type")]
     typ: AlertType,
     heading: Option<String>,
     msg: String,
@@ -177,16 +180,16 @@ impl From<FlashMessage> for Alert {
     }
 }
 
+// TODO create a lookup source for static alerts (maybe file or db)
+// something like impl From<Cookie> for Alert;
 
 fn lookup_flash_message(flash: FlashMessage) -> Alert {
-    // TODO create a lookup source (maybe file or db)
-    // fetch all fields from that file
     Alert {
         raw: false,
         typ: flash.name().into(),
         heading: None,
         msg: flash.msg().into(),
         strong: None,
-        dismissible: false,
+        dismissible: true,
     }
 }

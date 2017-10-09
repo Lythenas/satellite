@@ -26,5 +26,3 @@ pub mod context_builder;
 pub use meta::Metadata;
 pub use context_builder::ContextBuilder;
 pub use context_builder::TemplateContext;
-
-

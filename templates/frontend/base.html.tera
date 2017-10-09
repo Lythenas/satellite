@@ -1,0 +1,31 @@
+{% import "macros" as macros %}
+
+<!DOCTYPE html>
+<html lang="en">
+{% include "frontend/partials/head" %}
+<body>
+
+{% include "frontend/partials/header" %}
+
+<main role="main" class="container">
+
+    <div class="row">
+
+        <div class="col-sm-8 blog-main">
+
+            {% block blog_main %}
+            {% endblock blog_main %}
+
+        </div><!-- /.blog-main -->
+
+        {% include "frontend/partials/sidebar" %}
+
+    </div><!-- /.row -->
+
+</main><!-- /.container -->
+
+{% include "frontend/partials/footer" %}
+
+{% include "frontend/partials/foot" %}
+</body>
+</html>

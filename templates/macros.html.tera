@@ -1,0 +1,26 @@
+{% macro alert(raw, header, strong, msg, type, dismissible) %}
+    <div class="alert alert-{{type}} {% if dismissible %}alert-dismissible fade show{% endif %}" role="alert">
+        {% if dismissible %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        {% endif %}
+
+        {% if header %}
+            <h4 class="alert-heading">{{ header }}</h4>
+        {% endif %}
+
+        {% if raw %}
+            {{ msg | safe }}
+        {% else %}
+            {% if strong %}
+                <strong>{{ strong }}</strong>
+            {% endif %}
+            {{ msg }}
+        {% endif %}
+    </div>
+{% endmacro alert %}
+
+{% macro link(url, text, attributes) %}
+    <a href="{{ url }}" {% for key, value in attributes %}{{ key }}="{{ value }}"{% endfor %}>{{ text }}</a>
+{% endmacro link %}
