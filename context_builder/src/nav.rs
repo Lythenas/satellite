@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use std::string::ToString;
+use std::collections::{HashMap, HashSet};
 
 pub static EMPTY_MENU: [Link; 0] = [];
 
@@ -13,50 +13,37 @@ pub struct Link {
     url: String,
     #[serde(default)]
     attributes: HashMap<String, String>,
-    // TODO make this store a Vec<String> for classes etc. and add a custom serde serializer
-    // maybe make attributes: HashMap<String, Attribute>
-    // and Attribute is a enum of either Vec<String> for classes, HashMap<String, String> for style
-    // or just plain String for everything else.
+    #[serde(default)]
+    classes: HashSet<String>,
 }
 
 impl Link {
-    // TODO remove allow(dead_code) or this method
-    #[allow(dead_code)]
+    /// Creates a new `Link` with the given `text` and `url`.
     pub fn new<T: ToString, U: ToString>(text: T, url: U) -> Link {
         Link {
             text: text.to_string(),
             url: url.to_string(),
             attributes: HashMap::new(),
+            classes: HashSet::new(),
         }
     }
 
-    // TODO remove allow(dead_code) or this method
-    #[allow(dead_code)]
-    pub fn with_attributes<T, U>(text: T, url: U, attributes: HashMap<String, String>) -> Link
-    where
-        T: ToString,
-        U: ToString,
-    {
-        Link {
-            text: text.to_string(),
-            url: url.to_string(),
-            attributes,
+    /// Adds a class to this link.
+    /// Duplicate classes are ignored.
+    pub fn add_class<T: ToString>(&mut self, class: T) {
+        self.classes.insert(class.to_string());
+    }
+
+    /// Adds classes to this link.
+    /// Duplicate classes are ignored.
+    pub fn add_classes<I, T>(&mut self, classes: I)
+    where I: IntoIterator<Item=T>, T: ToString {
+        for class in classes.into_iter() {
+            self.add_class(class);
         }
     }
 
-    /// Adds a class to the class attribute string.
-    /// Does not check for duplicate classes.
-    pub fn add_class(&mut self, class: &str) {
-        let classes = self.attributes.entry("class".to_string()).or_insert(
-            "".to_string(),
-        );
-        if !classes.is_empty() {
-            classes.push_str(" ");
-        }
-        classes.push_str(class);
-    }
-
-    /// Checks if the link has the given url.
+    /// Returns a reference to the url.
     pub fn url(&self) -> &str {
         self.url.as_str()
     }
@@ -78,6 +65,7 @@ pub struct MenuBuilder<'b> {
     menu: Vec<Link>,
     active: Option<&'b str>,
     attributes: HashMap<String, String>,
+    classes: HashSet<String>,
 }
 
 impl<'b> MenuBuilder<'b> {
@@ -86,31 +74,28 @@ impl<'b> MenuBuilder<'b> {
             menu: menu.to_owned(),
             active: None,
             attributes: HashMap::new(),
+            classes: HashSet::new(),
         }
     }
 
-    pub fn add_class(&mut self, class: &str) {
-        // TODO don't store classes as string. store them as a set and join it later.
-        // this removes duplicates and avoids unnecessary whitespace at beginning without checks.
-        let class_attr = self.attributes.entry("class".to_string()).or_insert(
-            "".to_string(),
-        );
-        if !class_attr.is_empty() {
-            class_attr.push_str(" ");
-        }
-        class_attr.push_str(class);
+    /// Adds a class to all menu items.
+    pub fn add_class<T: ToString>(&mut self, class: T) {
+        self.classes.insert(class.to_string());
     }
 
+    /// Sets the currently active url.
     pub fn set_active(&mut self, url: &'b str) {
         self.active = Some(url);
     }
 
+    /// Finalizes the menu and returns a `Vec<Link>`.
     pub fn finalize(self) -> Vec<Link> {
         self.menu
             .iter()
             .map(|link| {
                 let mut link = link.clone();
                 link.extend_attributes(self.attributes.clone());
+                link.add_classes(self.classes.clone());
                 add_class_if_active(&mut link, self.active);
                 link
             })
@@ -143,6 +128,7 @@ mod tests {
                 text: String::from("Click here"),
                 url: String::from("https://somewhere.net"),
                 attributes: HashMap::new(),
+                classes: HashSet::new(),
             }
         );
     }

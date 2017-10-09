@@ -21,6 +21,8 @@
     </div>
 {% endmacro alert %}
 
-{% macro link(url, text, attributes) %}
-    <a href="{{ url }}" {% for key, value in attributes %}{{ key }}="{{ value }}"{% endfor %}>{{ text }}</a>
+{# TODO decide if this is a good idea or if we should just use {{ link | safe }} and generate the html in code. #}
+
+{% macro link(url, text, attributes, classes) %}
+    <a href="{{ url }}" class="{% for class in classes %}{{ class }}{% endfor %}" {% for key, value in attributes %}{{ key }}="{{ value }}"{% endfor %}>{{ text }}</a>
 {% endmacro link %}
