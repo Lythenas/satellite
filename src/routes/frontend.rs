@@ -5,8 +5,9 @@ use serde::Serialize;
 use rocket_contrib::Template;
 use rocket::response::NamedFile;
 use rocket::Route;
+use rocket::http::RawStr;
 use rocket::response::Redirect;
-use rocket::request::Form;
+use rocket::request::{Form, FromFormValue};
 use rocket::response::Flash;
 
 use context_builder::{ContextBuilder};
@@ -50,30 +51,74 @@ fn index(db: DbConn, mut context_builder: ContextBuilder<Vec<Post>>) -> Template
     Template::render("frontend/index", &context)
 }
 
+#[derive(Debug, Clone)]
+struct NonEmpty(String);
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, FromForm, Insertable)]
-#[table_name="posts"]
+impl<'v> FromFormValue<'v> for NonEmpty {
+    type Error = &'static str;
+
+    fn from_form_value(form_value: &'v RawStr) -> Result<Self, Self::Error> {
+        if form_value.is_empty() {
+            Err("can't be empty")
+        } else {
+            match form_value.url_decode() {
+                Ok(s) => Ok(NonEmpty(s)),
+                Err(_) => Err("could not be decoded as utf-8")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, FromForm)]
 struct NewPost {
+    title: Result<NonEmpty, &'static str>,
+    author: Result<NonEmpty, &'static str>,
+    body: Result<NonEmpty, &'static str>,
+}
+
+impl NewPost {
+    fn errors(&self) -> HashMap<String, String> {
+        let mut m = HashMap::new();
+
+        if let Err(e) = self.title {
+            m.insert("title".to_string(), format!("Title {}.", e));
+        }
+        if let Err(e) = self.author {
+            m.insert("author".to_string(), format!("Author {}.", e));
+        }
+        if let Err(e) = self.body {
+            m.insert("body".to_string(), format!("Body {}.", e));
+        }
+
+        m
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Insertable)]
+#[table_name="posts"]
+struct NewDbPost {
     title: String,
     author: String,
     body: String,
 }
 
-impl NewPost {
-    fn validate(&self) -> HashMap<String, String> {
-        let mut errors = HashMap::new();
-        if self.title.is_empty() {
-            errors.insert("title".into(), "Title can't be empty.".into());
+impl<'a, 'r> From<&'a NewPost> for Result<NewDbPost, HashMap<String, String>> {
+    fn from(post: &'a NewPost) -> Self {
+        let errors = post.errors();
+        if errors.is_empty() {
+            let post = post.clone();
+            // safe to unwrap
+            Ok(NewDbPost {
+                title: post.title.unwrap().0,
+                author: post.author.unwrap().0,
+                body: post.body.unwrap().0,
+            })
+        } else {
+            Err(errors)
         }
-        if self.author.is_empty() {
-            errors.insert("author".into(), "Author can't be empty.".into());
-        }
-        if self.body.is_empty() {
-            errors.insert("body".into(), "Body can't be empty.".into());
-        }
-        errors
     }
 }
+
 
 #[derive(Debug, Clone, Eq, PartialEq, Default, Serialize)]
 struct NewPostForm {
@@ -81,6 +126,24 @@ struct NewPostForm {
     title: String,
     author: String,
     body: String,
+}
+
+impl NewPostForm {
+    fn with_errors(post: NewPost, errors: HashMap<String, String>) -> NewPostForm {
+        fn unwrap<T>(r: Result<NonEmpty, T>) -> String {
+            match r {
+                Ok(s) => s.0,
+                Err(_) => String::new(),
+            }
+        }
+
+        NewPostForm {
+            errors,
+            title: unwrap(post.title),
+            author: unwrap(post.author),
+            body: unwrap(post.body),
+        }
+    }
 }
 
 #[get("/post")]
@@ -93,33 +156,25 @@ fn new_post_form(mut context_builder: ContextBuilder<NewPostForm>) -> Template {
 }
 
 #[post("/post", data = "<post>")]
-fn new_post(db: DbConn, post: Form<NewPost>, mut context_builder: ContextBuilder<NewPostForm>) -> Result<Flash<Redirect>, Template> {
-    // TODO validate more like rocket intends (see: https://github.com/SergioBenitez/Rocket/blob/master/examples/form_validation/src/main.rs)
-    // TODO redo error display
-
+fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: ContextBuilder<NewPostForm>) -> Result<Flash<Redirect>, Template> {
     let post = post.into_inner();
-    let errors = post.validate();
-    if !errors.is_empty() {
+
+    let errors = match (&post).into() {
+        Ok(post) => if insert_post(&db, &post) {
+            None
+        } else {
+            let mut m = HashMap::new();
+            m.insert("general".to_string(), "Error saving your post. Please try again later.".to_string());
+            Some(m)
+        },
+        Err(e) => Some(e),
+    };
+
+    if let Some(errors) = errors {
         prepare_context_builder(Some("/post/new"), &mut context_builder);
-        let context = context_builder.finalize_with_data(NewPostForm {
-            errors,
-            title: post.title,
-            author: post.author,
-            body: post.body,
-        });
-        Err(Template::render("frontend/create", &context))
-    } else if !insert_post(&db, &post) {
-        prepare_context_builder(Some("/post/new"), &mut context_builder);
-        let context = context_builder.finalize_with_data(NewPostForm {
-            errors: {
-                let mut m = HashMap::new();
-                m.insert("general".into(), "Error saving your post. Please try again later.".into());
-                m
-            },
-            title: post.title,
-            author: post.author,
-            body: post.body,
-        });
+        let context = context_builder.finalize_with_data(
+            NewPostForm::with_errors(post, errors)
+        );
         Err(Template::render("frontend/create", &context))
     } else {
         Ok(Flash::success(Redirect::to("/"), "Post created successfully."))
@@ -127,7 +182,7 @@ fn new_post(db: DbConn, post: Form<NewPost>, mut context_builder: ContextBuilder
 
 }
 
-fn insert_post(db: &DbConn, post: &NewPost) -> bool {
+fn insert_post(db: &DbConn, post: &NewDbPost) -> bool {
     use db::schema::posts;
     use diesel::ExecuteDsl;
 
