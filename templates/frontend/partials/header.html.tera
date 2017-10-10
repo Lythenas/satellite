@@ -3,6 +3,7 @@
         <div class="container">
             <nav class="nav">
                 {%for link in menus.main %}
+                    {# TODO remove link.classes and add a helper to check if it's the currently url #}
                     <a href="{{ link.url }}" class="nav-link {{ link.classes | join(sep=" ") }}">{{ link.text }}</a>
                 {% endfor %}
             </nav>
