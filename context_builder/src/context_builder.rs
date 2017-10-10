@@ -22,7 +22,7 @@ pub struct TemplateContext<'s, T: Serialize> {
 
 pub struct ContextBuilder<'s, T: Serialize> {
     meta: &'s Metadata,
-    menu_builders: HashMap<String, MenuBuilder<'s>>,
+    menu_builders: HashMap<String, MenuBuilder>,
     data: PhantomData<*const T>,
     alerts: Vec<Alert>,
 }
@@ -78,7 +78,7 @@ impl<'s, T: Serialize> ContextBuilder<'s, T> {
     ///
     /// let context = context_builder.finalize_with_default();
     /// ```
-    pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder<'s> {
+    pub fn menu_builder(&mut self, key: &str) -> &mut MenuBuilder {
         let menus = self.meta.menus();
         self.menu_builders.entry(key.to_string()).or_insert_with(
             || {

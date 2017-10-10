@@ -22,7 +22,6 @@ pub fn routes() -> Vec<Route> {
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
     let menu_builder = context_builder.menu_builder("main");
 
-    menu_builder.add_class("nav-link");
     if let Some(url) = current_url {
         menu_builder.set_active(url);
     }

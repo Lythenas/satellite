@@ -61,14 +61,14 @@ impl Link {
 
 /// Builder for `Vec<Link>`.
 /// [`Link`](struct.Link.html)
-pub struct MenuBuilder<'b> {
+pub struct MenuBuilder {
     menu: Vec<Link>,
-    active: Option<&'b str>,
+    active: Option<String>,
     attributes: HashMap<String, String>,
     classes: HashSet<String>,
 }
 
-impl<'b> MenuBuilder<'b> {
+impl MenuBuilder {
     pub fn new(menu: &[Link]) -> MenuBuilder {
         MenuBuilder {
             menu: menu.to_owned(),
@@ -84,8 +84,8 @@ impl<'b> MenuBuilder<'b> {
     }
 
     /// Sets the currently active url.
-    pub fn set_active(&mut self, url: &'b str) {
-        self.active = Some(url);
+    pub fn set_active<T: ToString>(&mut self, url: T) {
+        self.active = Some(url.to_string());
     }
 
     /// Finalizes the menu and returns a `Vec<Link>`.
@@ -96,15 +96,15 @@ impl<'b> MenuBuilder<'b> {
                 let mut link = link.clone();
                 link.extend_attributes(self.attributes.clone());
                 link.add_classes(self.classes.clone());
-                add_class_if_active(&mut link, self.active);
+                add_class_if_active(&mut link, &self.active);
                 link
             })
             .collect()
     }
 }
 
-fn add_class_if_active(link: &mut Link, active: Option<&str>) {
-    if let Some(active_url) = active {
+fn add_class_if_active(link: &mut Link, active: &Option<String>) {
+    if let Some(ref active_url) = *active {
         if link.url() == active_url {
             link.add_class("active");
         }
