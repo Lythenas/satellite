@@ -23,6 +23,7 @@
 
 {# TODO decide if this is a good idea or if we should just use {{ link | safe }} and generate the html in code. #}
 
-{% macro link(url, text, attributes, classes) %}
-    <a href="{{ url }}" class="{{ classes | join(sep=" ") }}" {% for key, value in attributes %}{{ key }}="{{ value }}"{% endfor %}>{{ text }}</a>
+{% macro link(link) %}
+    <a href="{{ link.url }}" class="{{ link.classes | join(sep=" ") }}"
+        {% for key, value in link.attributes %}{{ key }}="{{ value }}"{% endfor %}>{{ link.text }}</a>
 {% endmacro link %}
