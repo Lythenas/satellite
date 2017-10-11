@@ -19,11 +19,17 @@ extern crate chrono;
 
 extern crate context_builder;
 
-/// Contains all the routes.
-mod routes;
-
 /// Contains helpers for diesel.
 mod db;
+
+/// Contains all the controllers.
+mod controllers;
+
+/// Contains all the form structs and helpers.
+mod forms;
+
+/// Contains all the routes.
+mod routes;
 
 use rocket_contrib::Template;
 use context_builder::Metadata;
