@@ -9,7 +9,6 @@ use forms::NonEmpty;
 
 pub fn posts(db: &DbConn) -> Vec<Post> {
     use diesel::prelude::*;
-    use db::models::*;
     use db::schema::posts::dsl::*;
 
     posts.filter(published_at.is_not_null())
@@ -17,6 +16,15 @@ pub fn posts(db: &DbConn) -> Vec<Post> {
         .limit(5)
         .load::<Post>(&**db)
         .expect("error loading posts")
+}
+
+pub fn get(db: &DbConn, post_id: i32) -> QueryResult<Post> {
+    use diesel::prelude::*;
+    use db::schema::posts::dsl::*;
+
+    posts.filter(published_at.is_not_null())
+        .filter(id.eq(post_id))
+        .first(&**db)
 }
 
 pub fn try_insert(db: &DbConn, post: &NewPost) -> Result<Post, HashMap<String, String>> {

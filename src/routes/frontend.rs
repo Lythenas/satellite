@@ -1,11 +1,12 @@
 use std::path::{Path, PathBuf};
-use std::collections::HashMap;
+//use std::collections::HashMap;
 
 use serde::Serialize;
 use rocket_contrib::Template;
 use rocket::response::NamedFile;
 use rocket::Route;
-use rocket::response::Redirect;
+use rocket::response::{Redirect, Failure};
+use rocket::http::Status;
 use rocket::request::Form;
 use rocket::response::Flash;
 
@@ -16,7 +17,7 @@ use controllers::posts::{self, NewPost};
 use forms::posts::NewPostForm;
 
 pub fn routes() -> Vec<Route> {
-    routes![index, static_files, new_post_form, new_post, test_flash]
+    routes![index, static_files, new_post_form, new_post, post_get, test_flash]
 }
 
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
@@ -41,9 +42,7 @@ fn index(db: DbConn, mut context_builder: ContextBuilder<Vec<Post>>) -> Template
 #[get("/post")]
 fn new_post_form(mut context_builder: ContextBuilder<NewPostForm>) -> Template {
     prepare_context_builder(Some("/post/new"), &mut context_builder);
-
     let context = context_builder.finalize_with_default();
-
     Template::render("frontend/create", &context)
 }
 
@@ -52,9 +51,9 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
     let post = post.into_inner();
 
     match posts::try_insert(&db, &post) {
-        Ok(_post) => {
-            // TODO redirect to post page (using post.id or a slug)
-            Ok(Flash::success(Redirect::to("/"), "Post created successfully."))
+        Ok(post) => {
+            // TODO replace post.id with post.slug()
+            Ok(Flash::success(Redirect::to(format!("/post/{}", post.id).as_str()), "Post created successfully."))
         },
         Err(errors) => {
             prepare_context_builder(Some("/post/new"), &mut context_builder);
@@ -62,6 +61,20 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
                 NewPostForm::with_errors(post, errors)
             );
             Err(Template::render("frontend/create", &context))
+        }
+    }
+}
+
+#[get("/post/<id>")]
+fn post_get(id: u32, db: DbConn, mut context_builder: ContextBuilder<Post>) -> Result<Template, Failure> {
+    match posts::get(&db, id as i32) {
+        Ok(post) => {
+            prepare_context_builder(Some("/post"), &mut context_builder);
+            let context = context_builder.finalize_with_data(post);
+            Ok(Template::render("frontend/post", &context))
+        },
+        Err(_) => {
+            Err(Failure(Status::NotFound))
         }
     }
 }
