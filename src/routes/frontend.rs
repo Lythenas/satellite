@@ -17,7 +17,7 @@ use controllers::posts::{self, NewPost};
 use forms::posts::NewPostForm;
 
 pub fn routes() -> Vec<Route> {
-    routes![index, static_files, new_post_form, new_post, post_get, test_flash]
+    routes![index, static_files, new_post_form, new_post, post_get, post_get_no_slug, test_flash]
 }
 
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
@@ -65,16 +65,48 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
     }
 }
 
+enum ResponseResult<T> {
+    Success(T),
+    Failure(Failure),
+    Forward(Redirect),
+}
+
+use rocket::response::Responder;
+use rocket::Response;
+use rocket::Request;
+
+// TODO move somewhere else
+impl<'r, T: Responder<'r>> Responder<'r> for ResponseResult<T> {
+    fn respond_to(self, request: &Request) -> Result<Response<'r>, Status> {
+        match self {
+            ResponseResult::Success(resp) => resp.respond_to(request),
+            ResponseResult::Failure(failure) => failure.respond_to(request),
+            ResponseResult::Forward(redirect) => redirect.respond_to(request),
+        }
+    }
+}
+
 #[get("/post/<id>")]
-fn post_get(id: u32, db: DbConn, mut context_builder: ContextBuilder<Post>) -> Result<Template, Failure> {
+fn post_get_no_slug(id: u32, db: DbConn, context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
+    post_get(id, None, db, context_builder)
+}
+
+#[get("/post/<id>/<slug>")]
+fn post_get(id: u32, slug: Option<String>, db: DbConn, mut context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
     match posts::get(&db, id as i32) {
         Ok(post) => {
+            let real_slug = post.slug();
+            if slug.is_none() || slug.unwrap() != real_slug {
+                // TODO move url generation somewhere else (maybe model or controller)
+                return ResponseResult::Forward(Redirect::to(format!("/post/{}/{}", id, real_slug).as_str()))
+            }
+
             prepare_context_builder(Some("/post"), &mut context_builder);
             let context = context_builder.finalize_with_data(post);
-            Ok(Template::render("frontend/post", &context))
+            ResponseResult::Success(Template::render("frontend/post", &context))
         },
         Err(_) => {
-            Err(Failure(Status::NotFound))
+            ResponseResult::Failure(Failure(Status::NotFound))
         }
     }
 }
