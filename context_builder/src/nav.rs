@@ -154,10 +154,10 @@ mod tests {
         let mut link = link();
         link.add_class("active");
 
-        assert_eq!(link.attributes, {
-            let mut m = HashMap::new();
-            m.insert(String::from("class"), String::from("active"));
-            m
+        assert_eq!(link.classes, {
+            let mut s = HashSet::new();
+            s.insert(String::from("active"));
+            s
         });
     }
 
@@ -175,24 +175,53 @@ mod tests {
         let menu = builder.finalize();
 
         assert_eq!(menu[0], {
-            let mut attrs = HashMap::new();
-            attrs.insert(String::from("class"), String::from("main-nav"));
-            Link::with_attributes("Home", "/", attrs)
+            Link {
+                text: "Home".to_string(),
+                url: "/".to_string(),
+                attributes: HashMap::new(),
+                classes: {
+                    let mut s = HashSet::new();
+                    s.insert("main-nav".to_string());
+                    s
+                },
+            }
         });
         assert_eq!(menu[1], {
-            let mut attrs = HashMap::new();
-            attrs.insert(String::from("class"), String::from("main-nav"));
-            Link::with_attributes("About", "/about", attrs)
+            Link {
+                text: "About".to_string(),
+                url: "/about".to_string(),
+                attributes: HashMap::new(),
+                classes: {
+                    let mut s = HashSet::new();
+                    s.insert("main-nav".to_string());
+                    s
+                },
+            }
         });
         assert_eq!(menu[2], {
-            let mut attrs = HashMap::new();
-            attrs.insert(String::from("class"), String::from("main-nav active"));
-            Link::with_attributes("Blog", "/blog", attrs)
+            Link {
+                text: "Blog".to_string(),
+                url: "/blog".to_string(),
+                attributes: HashMap::new(),
+                classes: {
+                    let mut s = HashSet::new();
+                    s.insert("main-nav".to_string());
+                    s.insert("active".to_string());
+                    s
+                },
+            }
         });
         assert_eq!(menu[3], {
-            let mut attrs = HashMap::new();
-            attrs.insert(String::from("class"), String::from("main-nav"));
-            Link::with_attributes("Somewhere else", "/se", attrs)
+            Link {
+                text: "Somewhere else".to_string(),
+                url: "/se".to_string(),
+                attributes: HashMap::new(),
+                classes: {
+                    let mut s = HashSet::new();
+                    s.insert("main-nav".to_string());
+                    s
+                },
+            }
         });
     }
 }
