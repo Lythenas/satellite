@@ -28,6 +28,8 @@ mod controllers;
 /// Contains all the form structs and helpers.
 mod forms;
 
+mod response;
+
 /// Contains all the routes.
 mod routes;
 

@@ -15,9 +15,10 @@ use db::DbConn;
 use db::models::Post;
 use controllers::posts::{self, NewPost};
 use forms::posts::NewPostForm;
+use response::ResponseResult;
 
 pub fn routes() -> Vec<Route> {
-    routes![index, static_files, new_post_form, new_post, post_get, post_get_no_slug, test_flash]
+    routes![index, static_files, new_post_form, new_post, get_post, test_flash]
 }
 
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
@@ -52,7 +53,7 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
 
     match posts::try_insert(&db, &post) {
         Ok(post) => {
-            // TODO replace post.id with post.slug()
+            // TODO use general url generation in post_get
             Ok(Flash::success(Redirect::to(format!("/post/{}", post.id).as_str()), "Post created successfully."))
         },
         Err(errors) => {
@@ -65,40 +66,40 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
     }
 }
 
-enum ResponseResult<T> {
-    Success(T),
-    Failure(Failure),
-    Forward(Redirect),
+struct IdSlug {
+    id: Option<i32>,
+    slug: Option<String>,
 }
 
-use rocket::response::Responder;
-use rocket::Response;
-use rocket::Request;
+use rocket::request::FromParam;
+use rocket::http::RawStr;
+use std::str::Utf8Error;
 
-// TODO move somewhere else
-impl<'r, T: Responder<'r>> Responder<'r> for ResponseResult<T> {
-    fn respond_to(self, request: &Request) -> Result<Response<'r>, Status> {
-        match self {
-            ResponseResult::Success(resp) => resp.respond_to(request),
-            ResponseResult::Failure(failure) => failure.respond_to(request),
-            ResponseResult::Forward(redirect) => redirect.respond_to(request),
-        }
+impl<'a> FromParam<'a> for IdSlug {
+    type Error = Utf8Error;
+
+    fn from_param(param: &'a RawStr) -> Result<Self, Self::Error> {
+        let param = param.url_decode()?;
+        let mut split = param.splitn(2, '-');
+        let id = split.next().and_then(|id| id.parse::<i32>().ok());
+        let slug = split.next().map(String::from);
+        Ok(IdSlug { id, slug })
     }
 }
 
-#[get("/post/<id>")]
-fn post_get_no_slug(id: u32, db: DbConn, context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
-    post_get(id, None, db, context_builder)
-}
-
-#[get("/post/<id>/<slug>")]
-fn post_get(id: u32, slug: Option<String>, db: DbConn, mut context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
-    match posts::get(&db, id as i32) {
+#[get("/post/<id_slug>")]
+fn get_post(id_slug: IdSlug, db: DbConn, mut context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
+    let id = match id_slug.id {
+        Some(id) => id,
+        None => return ResponseResult::Failure(Failure(Status::NotFound)),
+    };
+    let slug = id_slug.slug;
+    match posts::get(&db, id) {
         Ok(post) => {
             let real_slug = post.slug();
             if slug.is_none() || slug.unwrap() != real_slug {
                 // TODO move url generation somewhere else (maybe model or controller)
-                return ResponseResult::Forward(Redirect::to(format!("/post/{}/{}", id, real_slug).as_str()))
+                return ResponseResult::Forward(Redirect::to(format!("/post/{}-{}", id, real_slug).as_str()))
             }
 
             prepare_context_builder(Some("/post"), &mut context_builder);
