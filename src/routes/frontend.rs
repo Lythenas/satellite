@@ -16,6 +16,7 @@ use db::models::Post;
 use controllers::posts::{self, NewPost};
 use forms::posts::NewPostForm;
 use response::ResponseResult;
+use request::IdSlug;
 
 pub fn routes() -> Vec<Route> {
     routes![index, static_files, new_post_form, new_post, get_post, test_flash]
@@ -63,27 +64,6 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
             );
             Err(Template::render("frontend/create", &context))
         }
-    }
-}
-
-struct IdSlug {
-    id: Option<i32>,
-    slug: Option<String>,
-}
-
-use rocket::request::FromParam;
-use rocket::http::RawStr;
-use std::str::Utf8Error;
-
-impl<'a> FromParam<'a> for IdSlug {
-    type Error = Utf8Error;
-
-    fn from_param(param: &'a RawStr) -> Result<Self, Self::Error> {
-        let param = param.url_decode()?;
-        let mut split = param.splitn(2, '-');
-        let id = split.next().and_then(|id| id.parse::<i32>().ok());
-        let slug = split.next().map(String::from);
-        Ok(IdSlug { id, slug })
     }
 }
 

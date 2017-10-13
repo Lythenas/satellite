@@ -29,6 +29,7 @@ mod controllers;
 mod forms;
 
 mod response;
+mod request;
 
 /// Contains all the routes.
 mod routes;
