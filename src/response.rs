@@ -1,3 +1,5 @@
+use std::convert::From;
+
 use rocket::response::{Responder, Failure, Redirect};
 use rocket::Response;
 use rocket::Request;
@@ -29,5 +31,17 @@ impl<'r, T: Responder<'r>> Responder<'r> for ResponseResult<T> {
             ResponseResult::Failure(failure) => failure.respond_to(request),
             ResponseResult::Forward(redirect) => redirect.respond_to(request),
         }
+    }
+}
+
+impl<T> From<Failure> for ResponseResult<T> {
+    fn from(failure: Failure) -> Self {
+        ResponseResult::Failure(failure)
+    }
+}
+
+impl<T> From<Redirect> for ResponseResult<T> {
+    fn from(redirect: Redirect) -> Self {
+        ResponseResult::Forward(redirect)
     }
 }

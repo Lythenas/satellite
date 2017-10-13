@@ -69,9 +69,9 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
 
 #[get("/post/<id_slug>")]
 fn get_post(id_slug: IdSlug, db: DbConn, mut context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
-    let id = match id_slug.id {
-        Some(id) => id,
-        None => return ResponseResult::Failure(Failure(Status::NotFound)),
+    let id = match id_slug.id.ok_or(Failure(Status::NotFound)) {
+        Ok(id) => id,
+        Err(err) => return err.into(),
     };
     let slug = id_slug.slug;
     match posts::get(&db, id) {
