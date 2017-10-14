@@ -54,8 +54,7 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
 
     match posts::try_insert(&db, &post) {
         Ok(post) => {
-            // TODO use general url generation in post_get
-            Ok(Flash::success(Redirect::to(format!("/post/{}", post.id).as_str()), "Post created successfully."))
+            Ok(Flash::success(Redirect::to(&post.url()), "Post created successfully."))
         },
         Err(errors) => {
             prepare_context_builder(Some("/post/new"), &mut context_builder);
