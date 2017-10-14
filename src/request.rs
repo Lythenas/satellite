@@ -2,6 +2,8 @@ use rocket::request::FromParam;
 use rocket::http::RawStr;
 use std::str::Utf8Error;
 
+// TODO probably remove
+
 /// Request param in the form of `id-slug` where id is `i32` and slug is a url endcoded `String`.
 pub struct IdSlug {
     pub id: Option<i32>,

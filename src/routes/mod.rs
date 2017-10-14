@@ -19,3 +19,8 @@ pub fn mount_to(rocket: Rocket) -> Rocket {
 pub fn add_catchers_to(rocket: Rocket) -> Rocket {
     rocket.catch(errors::errors())
 }
+
+pub trait Urlify {
+    fn url(&self) -> String;
+    fn short_url(&self) -> String;
+}

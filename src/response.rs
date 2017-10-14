@@ -17,6 +17,8 @@ use rocket::http::Status;
 ///     }
 /// }
 /// ``
+// TODO remove allow(dead_code)
+#[allow(dead_code)]
 pub enum ResponseResult<T> {
     Success(T),
     Failure(Failure),

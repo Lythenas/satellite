@@ -15,11 +15,11 @@ use db::DbConn;
 use db::models::Post;
 use controllers::posts::{self, NewPost};
 use forms::posts::NewPostForm;
-use response::ResponseResult;
-use request::IdSlug;
+//use response::ResponseResult;
+use routes::Urlify;
 
 pub fn routes() -> Vec<Route> {
-    routes![index, static_files, new_post_form, new_post, get_post, test_flash]
+    routes![index, static_files, new_post_form, new_post, get_post_short, get_post_long, test_flash]
 }
 
 pub fn prepare_context_builder<'a, T: Serialize>(current_url: Option<&'a str>, context_builder: &mut ContextBuilder<'a, T>) {
@@ -67,29 +67,31 @@ fn new_post<'a>(db: DbConn, post: Form<'a, NewPost>, mut context_builder: Contex
     }
 }
 
-#[get("/post/<id_slug>")]
-fn get_post(id_slug: IdSlug, db: DbConn, mut context_builder: ContextBuilder<Post>) -> ResponseResult<Template> {
-    let id = match id_slug.id.ok_or(Failure(Status::NotFound)) {
-        Ok(id) => id,
-        Err(err) => return err.into(),
-    };
-    let slug = id_slug.slug;
-    match posts::get(&db, id) {
+#[get("/post/<id>")]
+fn get_post_short(id: i32, db: DbConn) -> Result<Redirect, Failure> {
+    if id < 0 {
+        return Err(Failure(Status::NotFound))
+    }
+    match posts::get_with_id(&db, id) {
         Ok(post) => {
-            {
-                let real_slug = &post.slug;
-                if slug.is_none() || slug.unwrap() != *real_slug {
-                    // TODO move url generation somewhere else (maybe model or controller)
-                    return ResponseResult::Forward(Redirect::to(format!("/post/{}-{}", id, real_slug).as_str()))
-                }
-            }
-
-            prepare_context_builder(Some("/post"), &mut context_builder);
-            let context = context_builder.finalize_with_data(post);
-            ResponseResult::Success(Template::render("frontend/post", &context))
+            Ok(Redirect::to(&post.url()))
         },
         Err(_) => {
-            ResponseResult::Failure(Failure(Status::NotFound))
+            Err(Failure(Status::NotFound))
+        }
+    }
+}
+
+#[get("/post/<slug>", rank = 2)]
+fn get_post_long(slug: String, db: DbConn, mut context_builder: ContextBuilder<Post>) -> Result<Template, Failure> {
+    match posts::get_with_slug(&db, slug) {
+        Ok(post) => {
+            prepare_context_builder(Some("/post"), &mut context_builder);
+            let context = context_builder.finalize_with_data(post);
+            Ok(Template::render("frontend/post", &context))
+        },
+        Err(_) => {
+            Err(Failure(Status::NotFound))
         }
     }
 }
