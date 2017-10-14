@@ -4,6 +4,9 @@
 // TODO ?
 #![feature(custom_derive)]
 
+// Needed by diesels infer_schema!
+#![recursion_limit="128"]
+
 extern crate rocket;
 extern crate rocket_contrib;
 extern crate serde;

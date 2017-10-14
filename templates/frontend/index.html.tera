@@ -3,7 +3,7 @@
 {% block blog_main %}
     {% for post in data %}
         <div class="blog-post">
-            <h2 class="blog-post-title">{{ post.title }}</h2>
+            <h2 class="blog-post-title"><a href="/post/{{ post.slug }}">{{ post.title }}</a></h2>
             <p class="blog-post-meta">{{ post.published_at }} by {{ post.author }}</p>
 
             {# TODO markdown formatting here #}

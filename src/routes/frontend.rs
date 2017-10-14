@@ -76,10 +76,12 @@ fn get_post(id_slug: IdSlug, db: DbConn, mut context_builder: ContextBuilder<Pos
     let slug = id_slug.slug;
     match posts::get(&db, id) {
         Ok(post) => {
-            let real_slug = post.slug();
-            if slug.is_none() || slug.unwrap() != real_slug {
-                // TODO move url generation somewhere else (maybe model or controller)
-                return ResponseResult::Forward(Redirect::to(format!("/post/{}-{}", id, real_slug).as_str()))
+            {
+                let real_slug = &post.slug;
+                if slug.is_none() || slug.unwrap() != *real_slug {
+                    // TODO move url generation somewhere else (maybe model or controller)
+                    return ResponseResult::Forward(Redirect::to(format!("/post/{}-{}", id, real_slug).as_str()))
+                }
             }
 
             prepare_context_builder(Some("/post"), &mut context_builder);

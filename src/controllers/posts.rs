@@ -92,6 +92,7 @@ impl NewPost {
 #[table_name="posts"]
 pub struct NewDbPost {
     pub title: String,
+    pub slug: String,
     pub author: String,
     pub body: String,
 }
@@ -100,10 +101,13 @@ impl<'a, 'r> From<&'a NewPost> for Result<NewDbPost, HashMap<String, String>> {
     fn from(post: &'a NewPost) -> Self {
         let errors = post.errors();
         if errors.is_empty() {
+            // this is all safe to unwrap, because we got no errors.
             let post = post.clone();
-            // safe to unwrap
+            let title = post.title.unwrap().into_inner();
+
             Ok(NewDbPost {
-                title: post.title.unwrap().into_inner(),
+                slug: slug(&title),
+                title,
                 author: post.author.unwrap().into_inner(),
                 body: post.body.unwrap().into_inner(),
             })
@@ -111,4 +115,11 @@ impl<'a, 'r> From<&'a NewPost> for Result<NewDbPost, HashMap<String, String>> {
             Err(errors)
         }
     }
+}
+
+/// Creates a url-slug from the given title.
+/// Lowercases the title and replaces all whitespace with dashes ("-").
+pub fn slug(title: &str) -> String {
+    title.to_lowercase().replace(|c: char| c.is_whitespace(), "-")
+        .replace("#", "").replace("/", "")
 }
