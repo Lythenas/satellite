@@ -4,8 +4,6 @@
     <div class="blog-post">
         <h2 class="blog-post-title">{{ data.title }}</h2>
         <p class="blog-post-meta">{{ data.published_at }} by {{ data.author }}</p>
-
-        {# TODO markdown formatting here #}
-        <p>{{ data.body }}</p>
+        <p>{{ data.body | safe }}</p>
     </div>
 {% endblock blog_main %}
