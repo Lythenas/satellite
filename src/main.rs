@@ -19,7 +19,7 @@ extern crate diesel_codegen;
 extern crate r2d2;
 extern crate r2d2_diesel;
 extern crate chrono;
-extern crate markdown;
+extern crate pulldown_cmark;
 
 extern crate context_builder;
 
