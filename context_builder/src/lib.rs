@@ -7,6 +7,8 @@ extern crate serde;
 extern crate serde_derive;
 extern crate regex;
 extern crate toml;
+#[macro_use]
+extern crate maplit;
 
 /// Contains Metadata structs for use in routes.
 pub mod meta;

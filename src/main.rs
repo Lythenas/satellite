@@ -20,6 +20,8 @@ extern crate r2d2;
 extern crate r2d2_diesel;
 extern crate chrono;
 extern crate pulldown_cmark;
+#[macro_use]
+extern crate maplit;
 
 extern crate context_builder;
 

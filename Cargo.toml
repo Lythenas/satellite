@@ -21,6 +21,7 @@ r2d2-diesel = "0.16.0"
 chrono = { version = "*", features = ["serde"] }
 dotenv = "0.10"
 pulldown-cmark = "0.1"
+maplit = "1.0"
 
 context_builder = { path = "context_builder/" }
 

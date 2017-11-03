@@ -136,17 +136,16 @@ mod tests {
     #[test]
     fn extend_link_attributes() {
         let mut link = link();
-        let mut attributes = HashMap::new();
-        attributes.insert(String::from("class"), String::from("active"));
-        attributes.insert(String::from("id"), String::from("some-id"));
+        let attributes: HashMap<String, String> = convert_args!(hashmap!(
+            "class" => "active",
+            "id" => "some-id",
+        ));
         link.extend_attributes(attributes);
 
-        assert_eq!(link.attributes, {
-            let mut m = HashMap::new();
-            m.insert(String::from("class"), String::from("active"));
-            m.insert(String::from("id"), String::from("some-id"));
-            m
-        });
+        assert_eq!(link.attributes, convert_args!(hashmap!(
+            "class" => "active",
+            "id" => "some-id",
+        )));
     }
 
     #[test]
@@ -154,11 +153,9 @@ mod tests {
         let mut link = link();
         link.add_class("active");
 
-        assert_eq!(link.classes, {
-            let mut s = HashSet::new();
-            s.insert(String::from("active"));
-            s
-        });
+        assert_eq!(link.classes, convert_args!(hashset!(
+            "active"
+        )));
     }
 
     #[test]
@@ -179,11 +176,9 @@ mod tests {
                 text: "Home".to_string(),
                 url: "/".to_string(),
                 attributes: HashMap::new(),
-                classes: {
-                    let mut s = HashSet::new();
-                    s.insert("main-nav".to_string());
-                    s
-                },
+                classes: convert_args!(hashset!(
+                    "main-nav"
+                )),
             }
         });
         assert_eq!(menu[1], {
@@ -191,11 +186,9 @@ mod tests {
                 text: "About".to_string(),
                 url: "/about".to_string(),
                 attributes: HashMap::new(),
-                classes: {
-                    let mut s = HashSet::new();
-                    s.insert("main-nav".to_string());
-                    s
-                },
+                classes: convert_args!(hashset!(
+                    "main-nav"
+                )),
             }
         });
         assert_eq!(menu[2], {
@@ -203,12 +196,10 @@ mod tests {
                 text: "Blog".to_string(),
                 url: "/blog".to_string(),
                 attributes: HashMap::new(),
-                classes: {
-                    let mut s = HashSet::new();
-                    s.insert("main-nav".to_string());
-                    s.insert("active".to_string());
-                    s
-                },
+                classes: convert_args!(hashset!(
+                    "main-nav",
+                    "active",
+                )),
             }
         });
         assert_eq!(menu[3], {
@@ -216,11 +207,9 @@ mod tests {
                 text: "Somewhere else".to_string(),
                 url: "/se".to_string(),
                 attributes: HashMap::new(),
-                classes: {
-                    let mut s = HashSet::new();
-                    s.insert("main-nav".to_string());
-                    s
-                },
+                classes: convert_args!(hashset!(
+                    "main-nav"
+                )),
             }
         });
     }

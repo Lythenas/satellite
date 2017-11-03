@@ -41,13 +41,12 @@ pub fn try_insert(db: &DbConn, post: &NewPost) -> Result<Post, HashMap<String, S
 
     post.and_then(|post| {
         insert_post(&db, &post).map_err(|err| {
-            let mut m = HashMap::new();
-
             // TODO add real logging here
             println!("Error inserting post: {:?}", err);
-            m.insert("general".to_string(), "Error saving your post. Please try again later.".to_string());
 
-            m
+            convert_args!(hashmap!(
+                "general" => "Error saving your post. Please try again later.",
+            ))
         })
     })
 }
